@@ -5,6 +5,7 @@ import mysql from 'mysql';
 const app = express();
 const port = 3000;
 
+//create a connection to the MySQL database
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'idpa', 
