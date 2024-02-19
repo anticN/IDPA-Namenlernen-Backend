@@ -1,0 +1,26 @@
+{
+  "name": "idpa-namenlernen-backend",
+  "version": "1.0.0",
+  "description": "Backend for the IDPA-Project",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anticN/IDPA-Namenlernen-Backend.git"
+  },
+  "author": "Nikola Antic, Fernando Meier, Nils Fischer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anticN/IDPA-Namenlernen-Backend/issues"
+  },
+  "homepage": "https://github.com/anticN/IDPA-Namenlernen-Backend#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  }
+}
