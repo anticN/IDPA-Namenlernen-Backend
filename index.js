@@ -25,6 +25,21 @@ connection.connect()
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(session({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {}
+}))
+
+app.use('/home', (req, res, process) => {
+  if (req.session.email == null) {
+    res.status(403).json({ error: 'Not logged in! Log in to use the app!' })
+  } else {
+    process()
+  }
+})
+
 
 //function to add a teacher to DB
 function addTeacherToDB(teacher, res) {
@@ -45,7 +60,7 @@ function hashpw(password) {
 }
 
 
-app.get('/', (req, res) => {
+app.get('/home', (req, res) => {
     connection.query('SELECT * FROM student', (err, rows) => {
         if (err) throw err;
         res.send(rows);
@@ -89,7 +104,8 @@ app.post("/signup", function (req, res) {
         //main(email, "KSHub: Account verification", "Hello, your account has successfully been created!").catch(console.error);
         // adds the teacher to the DB
         addTeacherToDB(teacher, res);
-        //req.session.loggedin = true;
+        req.session.email = email;
+        req.session.loggedin = true;
       } else {
         // returns an error if the user tries to sign up with a non-KSH email
         console.log("Sie müssen Ihre KSH-Mail verwenden!");
@@ -116,10 +132,11 @@ app.post("/login", (req, res) => {
 
       // checks if the password is correct
       if (userpasswd === userHash) {
+        req.session.email = uEmail;
         //res.status(200).send({content: "User valid"})
         console.log("User valid");
         res.send({content: "User valid"});
-        //req.session.loggedin = true;
+        req.session.loggedin = true;
         // TODO session handling
       } else {
         res.status(401).send("Wrong Password or Username")
@@ -129,6 +146,17 @@ app.post("/login", (req, res) => {
     }
   });
 });
+
+//logout process, destroys the session
+app.delete('/logout', (req, res) => {
+  if (req.session.email != null) {
+    req.session.email = undefined
+    console.log('Logged out');
+    return res.status(204).json({ message: 'Logged out!' })
+  } else {
+    return res.status(401).json({ error: 'Not logged in!' })
+  }
+})
 
 
 //listener for the current port
