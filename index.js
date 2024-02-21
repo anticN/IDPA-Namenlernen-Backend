@@ -99,6 +99,37 @@ app.post("/signup", function (req, res) {
   });
 });
 
+//login process, checks if user exists and if password is correct
+app.post("/login", (req, res) => {
+  const password = req.body.password
+  const uEmail = req.body.email
+  // checks if the user exists in the DB
+  connection.query(`SELECT email, salt, hashedPW FROM teacher WHERE email='${uEmail}';`, (err, udata) => {
+    if (err) {
+      res.send("Error occurred")
+      return
+    } else if (udata.length > 0) {
+      const userSalt = udata[0].salt;
+      const userHash = udata[0].hashedPW;
+
+      const userpasswd = crypto.pbkdf2Sync(password, userSalt, 1000, 64, "sha512").toString("hex")
+
+      // checks if the password is correct
+      if (userpasswd === userHash) {
+        //res.status(200).send({content: "User valid"})
+        console.log("User valid");
+        res.send({content: "User valid"});
+        //req.session.loggedin = true;
+        // TODO session handling
+      } else {
+        res.status(401).send("Wrong Password or Username")
+      } 
+    }else{
+      res.status(400).send("User not found")
+    }
+  });
+});
+
 
 //listener for the current port
 app.listen(port, () => {
