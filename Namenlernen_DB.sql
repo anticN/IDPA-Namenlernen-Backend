@@ -2,23 +2,22 @@ drop database if exists learnnames_DB;
 
 create database learnnames_DB;
 
-use learnnames_DB;
+USE learnnames_DB;
 
 CREATE TABLE class (
-    classID INT PRIMARY KEY,
-    classname VARCHAR(50),
+    classname VARCHAR(50) PRIMARY KEY,
     startingyear INT
 );
 
 
 CREATE TABLE student (
     studentID INT PRIMARY KEY,
-    name VARCHAR(50),
+    lastname VARCHAR(50),
     firstname VARCHAR(50),
     image BLOB,
-    classID INT,
-    FOREIGN KEY (classID)
-        REFERENCES class (classID)
+    classname VARCHAR(50),
+    FOREIGN KEY (classname)
+        REFERENCES class (classname)
 );
 
 CREATE TABLE subject (
@@ -27,19 +26,21 @@ CREATE TABLE subject (
 );
 
 CREATE TABLE teacher (
-    teacherID INT PRIMARY KEY,
-    name VARCHAR(50),
+    teacherID INT PRIMARY KEY AUTO_INCREMENT,
+    lastname VARCHAR(50),
     firstname VARCHAR(50),
-    username VARCHAR(50),
-    password VARCHAR(50)
+    email VARCHAR(50),
+    salt VARCHAR(255),
+    hashedPW VARCHAR(255),
+    isVerified BOOLEAN
 );
 
 CREATE TABLE class_subject (
-    classID INT,
+    classname VARCHAR(50),
     subjectID INT,
-    PRIMARY KEY (classID , subjectID),
-    FOREIGN KEY (classID)
-        REFERENCES class (classID),
+    PRIMARY KEY (classname , subjectID),
+    FOREIGN KEY (classname)
+        REFERENCES class (classname),
     FOREIGN KEY (subjectID)
         REFERENCES subject (subjectID)
 );
@@ -53,5 +54,17 @@ CREATE TABLE teacher_subject (
     FOREIGN KEY (subjectID)
         REFERENCES subject (subjectID)
 );
+
+INSERT INTO class 
+VALUES ("IM21A", 2021),
+        ("IM22A", 2022);
+
+INSERT INTO student
+VALUES (1, "Müller", "Hans", NULL, "IM21A"),
+        (2, "Schmidt", "Lisa", NULL, "IM21A"),
+        (3, "Meier", "Peter", NULL, "IM21A"),
+        (4, "Schulz", "Anna", NULL, "IM21A"),
+        (5, "Fischer", "Lukas", NULL, "IM21A"),
+        (6, "Weber", "Lena", NULL, "IM21A");
 
  
