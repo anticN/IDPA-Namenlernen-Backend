@@ -3,6 +3,8 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
 import crypto from 'crypto';
+import { checkLogType } from './logging.js';
+
 
 
 const app = express();
@@ -40,6 +42,9 @@ app.use('/home', (req, res, process) => {
   }
 })
 
+function formatClient(req) {
+  return `\n\t\t\t\t\tClient: ${req.headers['user-agent']} || ${req.ip}`
+}
 
 //function to add a teacher to DB
 function addTeacherToDB(teacher, res) {
@@ -76,7 +81,10 @@ app.post("/signup", function (req, res) {
   const credentials = email.split("@");
   connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (error, result) => {
     // checks if the email already exists in the DB
-    if (error) throw error;
+    if (error){
+      checkLogType({error: `Error occurred: ${error}`});
+      throw error;
+    }
     if (row == undefined) {
       row = '';
     }else if (result.length > 0){
@@ -85,8 +93,9 @@ app.post("/signup", function (req, res) {
     console.log('DB result: ' + row);
     if (row == email) {
       // returns an error if the user tries to sign up with an email that already exists
-      console.log("Email already used");
-      res.status(401).json({ error: "Email already used" });
+      checkLogType({error: `Signup: Email ${email} already used${formatClient(req)}`});
+      console.log(`Signup: Email ${email} already used`);
+      res.status(401).json({ error: `Email ${email} already used` });
     } else {
       if (credentials[1] === "ksh.ch") {
         const names = credentials[0].split(".");
@@ -103,6 +112,7 @@ app.post("/signup", function (req, res) {
         }
         //main(email, "KSHub: Account verification", "Hello, your account has successfully been created!").catch(console.error);
         // adds the teacher to the DB
+        checkLogType({message: `User ${teacher.firstname} ${teacher.lastname} added to DB${formatClient(req)}`});
         addTeacherToDB(teacher, res);
         req.session.email = email;
         req.session.loggedin = true;
@@ -122,6 +132,7 @@ app.post("/login", (req, res) => {
   // checks if the user exists in the DB
   connection.query(`SELECT email, salt, hashedPW FROM teacher WHERE email='${uEmail}';`, (err, udata) => {
     if (err) {
+      checkLogType({error: `Error occurred: ${err}`});
       res.send("Error occurred")
       return
     } else if (udata.length > 0) {
@@ -135,9 +146,9 @@ app.post("/login", (req, res) => {
         req.session.email = uEmail;
         //res.status(200).send({content: "User valid"})
         console.log("User valid");
-        res.send({content: "User valid"});
+        checkLogType({message: `User ${uEmail} logged in${formatClient(req)}`});
+        res.send({content: "User logged in"});
         req.session.loggedin = true;
-        // TODO session handling
       } else {
         res.status(401).send("Wrong Password or Username")
       } 
@@ -150,6 +161,7 @@ app.post("/login", (req, res) => {
 //logout process, destroys the session
 app.delete('/logout', (req, res) => {
   if (req.session.email != null) {
+    checkLogType({message: `User ${req.session.email} logged out`});
     req.session.email = undefined
     console.log('Logged out');
     return res.status(204).json({ message: 'Logged out!' })
@@ -161,5 +173,6 @@ app.delete('/logout', (req, res) => {
 
 //listener for the current port
 app.listen(port, () => {
+    checkLogType({message: `Server running on port: ${port}`});
     console.log(`Server running on port: ${port}`);
   })
