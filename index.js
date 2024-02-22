@@ -22,7 +22,6 @@ const connection = mysql.createConnection({
 })
 
 connection.connect()
-connectiondb.connect()
 
 
 app.use(express.json());
