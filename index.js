@@ -1,5 +1,6 @@
 import express from 'express';
 import mysql from 'mysql';
+import {insertImage} from './imageinsert.js';
 
 
 const app = express();
@@ -13,7 +14,16 @@ const connection = mysql.createConnection({
     database: 'idpa_namen'
 })
 
+const connectiondb = mysql.createConnection({
+    host: 'localhost',
+    user: 'idpa',
+    password: 'IDPA2024',
+    database: 'learnnames_db'
+})
+
+
 connection.connect()
+connectiondb.connect()
 
 
 app.use(express.json());
@@ -26,6 +36,16 @@ app.get('/', (req, res) => {
     });
     //res.send(rows);
   });
+
+
+app.get('/images', (req, res) => {
+    insertImage(connectiondb);
+    connectiondb.query('SELECT * FROM student', (err, rows) => {
+        if (err) throw err;
+        res.send(rows);
+    });
+    });
+
 
 
 //listener for the current port
