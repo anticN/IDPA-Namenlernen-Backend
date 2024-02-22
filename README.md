@@ -7,3 +7,37 @@ Das Projekt IDPA-Namenlernen ist ein Projekt, welches im Rahmen des Interdiszipl
 - Nikola Antic
 - <a href="https://github.com/FernandoMeier">Fernando Meier</a>
 - <a href="https://github.com/FischerNils06">Nils Fischer</a>
+
+## Backend
+Das hier ist das Backend der Applikation. Es ist ein NodeJS basiertes Express-Backend, welches die Datenbankanbindung und die API bereitstellt.
+
+## Setup
+1. Repository klonen
+```
+git clone https://github.com/anticN/IDPA-Namenlernen-Backend.git
+```
+2. In das Verzeichnis wechseln
+3. Abhängigkeiten installieren
+```
+npm install
+```
+4. .env Datei erstellen für die MySQL Verbindung
+```
+#example
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=1234
+DB_DATABASE=learnnames_DB
+```
+5. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
+```
+mysql -u root -p
+```
+```
+source /path/to/IDPA-Namenlernen-Backend/Namenlernen_DB.sql
+```
+6. Server starten
+```
+npm run start
+```
+
