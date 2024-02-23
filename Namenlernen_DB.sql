@@ -11,7 +11,7 @@ CREATE TABLE class (
 
 
 CREATE TABLE student (
-    studentID INT PRIMARY KEY,
+    studentID INT PRIMARY KEY AUTO_INCREMENT,
     lastname VARCHAR(50),
     firstname VARCHAR(50),
     image BLOB,
