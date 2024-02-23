@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mysql from 'mysql';
 import crypto from 'crypto';
 import { checkLogType } from './logging.js';
+import { insertImage } from './imageinsert.js';
 
 
 
@@ -13,6 +14,9 @@ const port = 3000;
 //load the environment variables
 dotenv.config();
 
+
+
+
 //create a connection to the MySQL database
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -21,8 +25,8 @@ const connection = mysql.createConnection({
     database: process.env.DB_NAME
 })
 
+
 connection.connect()
-connectiondb.connect()
 
 
 app.use(express.json());
@@ -171,6 +175,17 @@ app.delete('/logout', (req, res) => {
   }
 })
 
+app.post('/imagepost', (req, res) => {
+  insertImage(connection);
+  res.send('Image inserted');
+})
+
+app.get('/student', (req, res) => {
+  connection.query('SELECT * FROM student', (err, rows) => {
+    if (err) throw err;
+    res.send(rows);
+  });
+});
 
 //listener for the current port
 app.listen(port, () => {
