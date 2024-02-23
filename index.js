@@ -187,6 +187,20 @@ app.get('/student', (req, res) => {
   });
 });
 
+app.get('/home/class', (req, res) => {
+  let loggedInTeacher = req.session.email;
+  connection.query(`SELECT teacher.firstname, teacher.lastname, class.classname, subject.subjectname
+                    FROM teacher 
+                    INNER JOIN teacher_class ON teacher.teacherID = teacher_class.teacherID 
+                    INNER JOIN class ON teacher_class.classname = class.classname 
+                    INNER JOIN teacher_class_subject ON teacher_class.teacher_classID = teacher_class_subject.teacher_classID 
+                    INNER JOIN subject  ON teacher_class_subject.subjectID = subject.subjectID 
+                    WHERE teacher.email = "` + loggedInTeacher + `";`, (err, rows) => {
+     if (err) throw err;
+     res.send(rows);
+  });
+});
+
 //listener for the current port
 app.listen(port, () => {
     checkLogType({message: `Server running on port: ${port}`});

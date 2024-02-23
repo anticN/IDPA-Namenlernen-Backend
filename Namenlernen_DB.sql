@@ -35,22 +35,23 @@ CREATE TABLE teacher (
     isVerified BOOLEAN
 );
 
-CREATE TABLE class_subject (
+
+CREATE TABLE teacher_class (
+	teacher_classID INT PRIMARY KEY AUTO_INCREMENT,
+    teacherID INT,
     classname VARCHAR(50),
-    subjectID INT,
-    PRIMARY KEY (classname , subjectID),
+    FOREIGN KEY (teacherID)	
+        REFERENCES teacher (teacherID),
     FOREIGN KEY (classname)
-        REFERENCES class (classname),
-    FOREIGN KEY (subjectID)
-        REFERENCES subject (subjectID)
+        REFERENCES class (classname)
 );
 
-CREATE TABLE teacher_subject (
-    teacherID INT,
+CREATE TABLE teacher_class_subject (
+    teacher_classID INT,
     subjectID INT,
-    PRIMARY KEY (teacherID , subjectID),
-    FOREIGN KEY (teacherID)
-        REFERENCES teacher (teacherID),
+    PRIMARY KEY (teacher_classID , subjectID),
+    FOREIGN KEY (teacher_classID)
+        REFERENCES teacher_class (teacher_classID),
     FOREIGN KEY (subjectID)
         REFERENCES subject (subjectID)
 );
