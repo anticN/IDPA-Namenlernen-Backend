@@ -41,7 +41,7 @@ app.use(session({
 
 app.use('/home', (req, res, process) => {
   if (req.session.email == null) {
-    res.status(403).json({ error: 'Not logged in! Log in to use the app!' })
+    res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
   } else {
     process()
   }
@@ -100,7 +100,7 @@ app.post("/signup", function (req, res) {
       // returns an error if the user tries to sign up with an email that already exists
       checkLogType({error: `Signup: Email ${email} already used${formatClient(req)}`});
       console.log(`Signup: Email ${email} already used`);
-      res.status(401).json({ error: `Email ${email} already used` });
+      res.status(401).json({ error: `Die Email: ${email} wurde bereits verwendet!` });
     } else {
       if (credentials[1] === "ksh.ch") {
         const names = credentials[0].split(".");
@@ -155,10 +155,10 @@ app.post("/login", (req, res) => {
         res.send({content: "User logged in"});
         req.session.loggedin = true;
       } else {
-        res.status(401).send("Wrong Password or Username")
+        res.status(401).send("Falsches Passwort oder falscher Benutzername")
       } 
     }else{
-      res.status(400).send("User not found")
+      res.status(400).send("Falsches Passwort oder falscher Benutzername")
     }
   });
 });
