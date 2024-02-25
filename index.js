@@ -188,6 +188,7 @@ app.get('/student', (req, res) => {
 });
 
 app.get('/home/class', (req, res) => {
+  // teacher will be shown all his classes
   let loggedInTeacher = req.session.email;
   connection.query(`SELECT teacher.firstname, teacher.lastname, class.classname, subject.subjectname
                     FROM teacher 
@@ -195,11 +196,26 @@ app.get('/home/class', (req, res) => {
                     INNER JOIN class ON teacher_class.classname = class.classname 
                     INNER JOIN teacher_class_subject ON teacher_class.teacher_classID = teacher_class_subject.teacher_classID 
                     INNER JOIN subject  ON teacher_class_subject.subjectID = subject.subjectID 
-                    WHERE teacher.email = "` + loggedInTeacher + `";`, (err, rows) => {
+                    WHERE teacher.email = "${loggedInTeacher}";`, (err, rows) => {
      if (err) throw err;
      res.send(rows);
   });
 });
+
+app.get('/home/class/students', (req, res) => {
+  // teacher selects a class and gets all students in that class
+  let loggedInTeacher = req.session.email;
+  let classname = req.body.classname;
+  /*TODO replace test_teacher with teacher*/
+  connection.query(`SELECT student.lastname, student.firstname, student.image, class.classname FROM student
+                    INNER JOIN class ON student.classname = class.classname
+                    INNER JOIN teacher_class ON class.classname = teacher_class.classname
+                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
+                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}";`, (err, rows) => {
+                      if(err) throw err;
+                      res.send(rows);
+                    });
+})
 
 //listener for the current port
 app.listen(port, () => {
