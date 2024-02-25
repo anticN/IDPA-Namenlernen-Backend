@@ -11,6 +11,9 @@ Das Projekt IDPA-Namenlernen ist ein Projekt, welches im Rahmen des Interdiszipl
 ## Backend
 Das hier ist das Backend der Applikation. Es ist ein NodeJS basiertes Express-Backend, welches die Datenbankanbindung und die API bereitstellt.
 
+## Frontend
+Das Frontend zu unserer Applikation finden Sie <a href="https://github.com/anticN/IDPA-Namenlernen-Frontend">hier</a>.
+
 ## Setup
 1. Repository klonen
 ```
