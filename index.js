@@ -2,6 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
+import cors from 'cors';
 import crypto from 'crypto';
 import { checkLogType } from './logging.js';
 import { insertImage } from './imageinsert.js';
@@ -28,7 +29,8 @@ const connection = mysql.createConnection({
 
 connection.connect()
 
-
+app.use(cors());
+// TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,7 +60,7 @@ function addTeacherToDB(teacher, res) {
       [teacher], (err, result) => {
         if (err) throw err;
         console.log('User added to DB', result);
-        res.send(`Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!`);
+        res.status(201).json({message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!`});
     });
 }
 
@@ -83,8 +85,10 @@ app.post("/signup", function (req, res) {
   let row = '';
   const email = req.body.email;
   const password = req.body.password;
-  const credentials = email.split("@");
-  connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (error, result) => {
+  console.log(email);
+  try {
+    const credentials = email.split("@");
+    connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (error, result) => {
     // checks if the email already exists in the DB
     if (error){
       checkLogType({error: `Error occurred: ${error}`});
@@ -124,10 +128,15 @@ app.post("/signup", function (req, res) {
       } else {
         // returns an error if the user tries to sign up with a non-KSH email
         console.log("Sie müssen Ihre KSH-Mail verwenden!");
-        res.status(401).send("Sie müssen Ihre KSH-Mail verwenden!");
+        res.status(401).json({error: "Sie müssen Ihre KSH-Mail verwenden!"});
       }
     }
   });
+  }
+  catch (error) {
+    console.log(error);
+    checkLogType({error: `Error occurred: ${error}`});
+  }
 });
 
 //login process, checks if user exists and if password is correct
@@ -152,13 +161,13 @@ app.post("/login", (req, res) => {
         //res.status(200).send({content: "User valid"})
         console.log("User valid");
         checkLogType({message: `User ${uEmail} logged in${formatClient(req)}`});
-        res.send({content: "User logged in"});
+        res.json({message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!`});
         req.session.loggedin = true;
       } else {
-        res.status(401).send("Falsches Passwort oder falscher Benutzername")
+        res.status(401).json({error: "Falsches Passwort oder falscher Benutzername"})
       } 
     }else{
-      res.status(400).send("Falsches Passwort oder falscher Benutzername")
+      res.status(400).json({error: "Falsches Passwort oder falscher Benutzername"})
     }
   });
 });
@@ -169,7 +178,7 @@ app.delete('/logout', (req, res) => {
     checkLogType({message: `User ${req.session.email} logged out`});
     req.session.email = undefined
     console.log('Logged out');
-    return res.status(204).json({ message: 'Logged out!' })
+    return res.status(200).json({ message: 'Logged out!' })
   } else {
     return res.status(401).json({ error: 'Not logged in!' })
   }
@@ -177,7 +186,7 @@ app.delete('/logout', (req, res) => {
 
 app.post('/imagepost', (req, res) => {
   insertImage(connection);
-  res.send('Image inserted');
+  res.json({message: 'Image inserted'});
 })
 
 app.get('/student', (req, res) => {
