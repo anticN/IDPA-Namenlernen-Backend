@@ -201,6 +201,16 @@ app.get('/home/class', (req, res) => {
   });
 });
 
+
+
+app.post('/pdfupload',  (req, res) => {
+  const file = req.body.file;
+  res.send('File received '+ file);
+  console.log(file);
+})
+
+
+
 //listener for the current port
 app.listen(port, () => {
     checkLogType({message: `Server running on port: ${port}`});
