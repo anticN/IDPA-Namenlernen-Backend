@@ -35,13 +35,21 @@ CREATE TABLE teacher (
     isVerified BOOLEAN
 );
 
+CREATE TABLE test_teacher (
+    teacherID INT PRIMARY KEY AUTO_INCREMENT,
+    lastname VARCHAR(50),
+    firstname VARCHAR(50),
+    email VARCHAR(50),
+    isVerified BOOLEAN
+);
+
 
 CREATE TABLE teacher_class (
 	teacher_classID INT PRIMARY KEY AUTO_INCREMENT,
     teacherID INT,
     classname VARCHAR(50),
     FOREIGN KEY (teacherID)	
-        REFERENCES teacher (teacherID),
+        REFERENCES test_teacher (teacherID), /*test_teacher mit teacher ersetzen*/
     FOREIGN KEY (classname)
         REFERENCES class (classname)
 );
@@ -64,8 +72,28 @@ INSERT INTO student
 VALUES (1, "Müller", "Hans", NULL, "IM21A"),
         (2, "Schmidt", "Lisa", NULL, "IM21A"),
         (3, "Meier", "Peter", NULL, "IM21A"),
-        (4, "Schulz", "Anna", NULL, "IM21A"),
-        (5, "Fischer", "Lukas", NULL, "IM21A"),
-        (6, "Weber", "Lena", NULL, "IM21A");
+        (4, "Schulz", "Anna", NULL, "IM22A"),
+        (5, "Fischer", "Lukas", NULL, "IM22A"),
+        (6, "Weber", "Lena", NULL, "IM22A");
+
+INSERT INTO test_teacher
+VALUES (1, "Moling", "Mike", "test.lehrer@ksh.ch", 0);
+
+INSERT INTO teacher_class
+VALUES (1,1,"IM21A"),
+        (2,1,"IM22A");
+
+INSERT INTO subject
+VALUES (1, "Mathematik"),
+        (2, "Deutsch"),
+        (3, "Englisch"),
+        (4, "Sport"),
+        (5, "Informatik");
+
+INSERT INTO teacher_class_subject
+VALUES (1,1),
+        (1,2),
+        (2,1),
+        (2,2);
 
  
