@@ -8,6 +8,7 @@ import { checkLogType } from './logging.js';
 import { insertImage } from './imageinsert.js';
 import multer from 'multer';
 import bodyParser from 'body-parser';
+import { parser } from './pdfparser.js';
 
 
 
@@ -234,6 +235,8 @@ app.get('/home/class/students', (req, res) => {
 })
 
 
+
+// storage for the uploaded pdfs
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/')
@@ -245,13 +248,14 @@ let storage = multer.diskStorage({
 
 let upload = multer({ storage: storage }).single('file')
 
-
+// upload the pdf
 app.post('/pdfupload',  (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.end('Error uploading file');
     } else {
-      res.end('File is uploaded'+ req.file.filename);
+      res.end('File is uploaded');
+      parser(req, res);
     }
   })
 })
