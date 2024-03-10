@@ -6,6 +6,8 @@ import cors from 'cors';
 import crypto from 'crypto';
 import { checkLogType } from './logging.js';
 import { insertImage } from './imageinsert.js';
+import multer from 'multer';
+import bodyParser from 'body-parser';
 
 
 
@@ -33,6 +35,7 @@ app.use(cors());
 // TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.use(session({
   secret: 'secret',
@@ -70,6 +73,10 @@ function hashpw(password) {
   const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex")
   return { salt, hashed }
 }
+
+
+
+
 
 
 app.get('/home', (req, res) => {
@@ -227,11 +234,26 @@ app.get('/home/class/students', (req, res) => {
 })
 
 
+let storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+
+let upload = multer({ storage: storage }).single('file')
+
 
 app.post('/pdfupload',  (req, res) => {
-  const file = req.body.file;
-  res.send('File received '+ file);
-  console.log(file);
+  upload(req, res, (err) => {
+    if (err) {
+      return res.end('Error uploading file');
+    } else {
+      res.end('File is uploaded'+ req.file.filename);
+    }
+  })
 })
 
 
