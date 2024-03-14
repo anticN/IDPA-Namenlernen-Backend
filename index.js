@@ -255,10 +255,12 @@ app.post('/pdfupload',  (req, res) => {
       return res.end('Error uploading file');
     } else {
       res.end('File is uploaded');
-      parser(req, res);
+      parser(req, res, connection);
+      
     }
   })
 })
+
 
 
 
@@ -267,3 +269,4 @@ app.listen(port, () => {
     checkLogType({message: `Server running on port: ${port}`});
     console.log(`Server running on port: ${port}`);
   })
+
