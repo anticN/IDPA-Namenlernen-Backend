@@ -8,8 +8,22 @@ function insertImage(students, classobject, connection) {
     connection.query(sql,(err, result) => {
         if (err) throw err;
         console.log('result:', result);
-        if (result.length === 0) {
-            let sql = `INSERT INTO class (classname, startingyear) VALUES ('${classobject.classname}', '${classobject.startingyear}')`;
+        if (result.length != 0) {
+            // Delete all students with the same classname and the class as well
+            let sqldel = `DELETE FROM student WHERE classname = '${classobject.classname}'`;
+            connection.query(sqldel, (err) => {
+                if (err) throw err;
+                console.log('1 record deleted');
+            });
+
+            let sqldel2 = `DELETE FROM class WHERE classname = '${classobject.classname}'`;
+            connection.query(sqldel2, (err) => {
+                if (err) throw err;
+                console.log('1 record deleted');
+            });
+        }
+
+        let sql = `INSERT INTO class (classname, startingyear) VALUES ('${classobject.classname}', '${classobject.startingyear}')`;
             connection.query(sql, (err) => {
                 if (err) throw err;
                 console.log('1 record inserted');
@@ -22,7 +36,6 @@ function insertImage(students, classobject, connection) {
                     console.log('1 record inserted');
                 });
             }
-        }
     });
 
     
