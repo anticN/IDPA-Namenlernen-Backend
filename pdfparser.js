@@ -48,12 +48,12 @@ function dataParser(pdfpath, req, connection) {
             for (let i = 0; i < studentlines.length; i++) {
                 let student = studentlines[i];
                 let studentname = student.split(' ');
-
+                let image = `uploads/img_p0_${i+2}.png`;
                 
                 let studentObj = {
                     lastname: studentname[1],
                     firstname: studentname[0],
-                    image: null,
+                    image: image,
                     classname: classname
                 }
     
