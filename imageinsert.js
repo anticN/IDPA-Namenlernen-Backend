@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 function insertImage(students, classobject, connection) {
     console.log('000students:', students);
     console.log('000classobject:', classobject);
@@ -30,16 +32,28 @@ function insertImage(students, classobject, connection) {
             });
 
             for (let i = 0; i < students.length; i++) {
-                let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES ('${students[i].lastname}', '${students[i].firstname}', '${students[i].image}', '${students[i].classname}')`;
-                connection.query(sql, (err) => {
-                    if (err) throw err;
-                    console.log('1 record inserted');
-                });
+                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection);
+                
             }
     });
 
-    
+}
 
+function imagePathFunction(imagePath, student, connection) {
+    fs.readFile(imagePath, (err, data) => {
+        if (err) {
+            console.error('Fehler beim Lesen der Datei:', err);
+        }
+        student.image = data;
+        let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)`
+                
+                connection.query(sql, [student.lastname, student.firstname, student.image, student.classname], (err) => {
+                    if (err) throw err;
+                    console.log('1 record inserted');
+                    console.log('student:', student);
+                });
+    
+    });;
 }
 
 export {insertImage};

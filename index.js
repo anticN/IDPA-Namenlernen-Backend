@@ -261,6 +261,24 @@ app.post('/pdfupload',  (req, res) => {
   })
 })
 
+app.get('/allclasses', (req, res) => {
+  connection.query('SELECT classname FROM class', (err, rows) => {
+    if (err) throw err;
+    res.send(rows);
+  });
+});
+
+
+app.get('/allclasses/:classname', (req, res) => {
+  let classname = req.params.classname;
+  connection.query(`SELECT firstname, lastname, image, class.classname FROM student
+                    INNER JOIN class ON student.classname = class.classname 
+                    WHERE class.classname = "${classname}"`, (err, rows) => {
+                    if (err) throw err;
+                    res.send(rows);
+                    });
+});
+
 
 
 

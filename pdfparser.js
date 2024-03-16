@@ -2,6 +2,7 @@ import pdf from 'pdf-parse';
 import fs from 'fs';
 import { exportImages } from 'pdf-export-images';
 import { insertImage } from './imageinsert.js';
+import { constants } from 'buffer';
 
 
 
@@ -48,12 +49,15 @@ function dataParser(pdfpath, req, connection) {
             for (let i = 0; i < studentlines.length; i++) {
                 let student = studentlines[i];
                 let studentname = student.split(' ');
-                let image = `uploads/img_p0_${i+2}.png`;
+                const imagePath = `uploads/img_p0_${i+2}.png`;
+
+        // Lesen Sie den Inhalt der Datei
+        
                 
                 let studentObj = {
                     lastname: studentname[1],
                     firstname: studentname[0],
-                    image: image,
+                    image: null,
                     classname: classname
                 }
     
@@ -63,13 +67,16 @@ function dataParser(pdfpath, req, connection) {
                 classname: classname,
                 startingyear: startingyear
             }
-            console.log('students:', students);
             console.log('classobject:', classobject);
-
             insertImage(students, classobject, connection);
+
+            
 
             
         });
 }
+
+
+
 
 export {parser};

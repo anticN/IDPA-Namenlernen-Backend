@@ -20,10 +20,6 @@ CREATE TABLE student (
         REFERENCES class (classname)
 );
 
-CREATE TABLE subject (
-    subjectID INT PRIMARY KEY,
-    subjectname VARCHAR(50)
-);
 
 CREATE TABLE teacher (
     teacherID INT PRIMARY KEY AUTO_INCREMENT,
@@ -54,15 +50,6 @@ CREATE TABLE teacher_class (
         REFERENCES class (classname)
 );
 
-CREATE TABLE teacher_class_subject (
-    teacher_classID INT,
-    subjectID INT,
-    PRIMARY KEY (teacher_classID , subjectID),
-    FOREIGN KEY (teacher_classID)
-        REFERENCES teacher_class (teacher_classID),
-    FOREIGN KEY (subjectID)
-        REFERENCES subject (subjectID)
-);
 
 INSERT INTO class 
 VALUES ("IM21A", 2021),
