@@ -280,6 +280,31 @@ app.get('/allclasses/:classname', (req, res) => {
 });
 
 
+app.post('/teacherclass', (req, res) => {
+  let teacherID = req.body.teacherID;
+  let classname = req.body.classname;
+  console.log(req);
+  let sql = `INSERT INTO teacher_class (teacherID, classname) VALUES (?, ?)`;
+  connection.query(sql, [teacherID, classname], (err) => {
+    if (err) throw err;
+    console.log('1 record inserted');
+    res.json({message: 'Class added to teacher'});
+  });
+})
+
+app.get('/teachers/:teacherID', (req, res) => {
+  let id = req.params.teacherID;
+  connection.query(`SELECT test_teacher.firstname, test_teacher.lastname, test_teacher.email, GROUP_CONCAT(class.classname SEPARATOR ', ') AS classes FROM test_teacher
+                    LEFT JOIN teacher_class ON test_teacher.teacherID = teacher_class.teacherID
+                    LEFT JOIN class ON teacher_class.classname = class.classname
+                    WHERE test_teacher.teacherID = "${id}"
+                    GROUP BY test_teacher.teacherID`, (err, rows) => {
+                      if (err) throw err;
+                      res.send(rows);
+  });
+})
+
+
 
 
 //listener for the current port
