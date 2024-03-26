@@ -10,21 +10,8 @@ function insertImage(students, classobject, connection) {
     connection.query(sql,(err, result) => {
         if (err) throw err;
         console.log('result:', result);
-        if (result.length != 0) {
-            // Delete all students with the same classname and the class as well
-            let sqldel = `DELETE FROM student WHERE classname = '${classobject.classname}'`;
-            connection.query(sqldel, (err) => {
-                if (err) throw err;
-                console.log('1 record deleted');
-            });
-
-            let sqldel2 = `DELETE FROM class WHERE classname = '${classobject.classname}'`;
-            connection.query(sqldel2, (err) => {
-                if (err) throw err;
-                console.log('1 record deleted');
-            });
-        }
-
+        
+        if (result.length == 0) {
         let sql = `INSERT INTO class (classname, startingyear) VALUES ('${classobject.classname}', '${classobject.startingyear}')`;
             connection.query(sql, (err) => {
                 if (err) throw err;
@@ -32,26 +19,46 @@ function insertImage(students, classobject, connection) {
             });
 
             for (let i = 0; i < students.length; i++) {
-                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection);
+                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result);
                 
             }
+        } else {
+            let sql = `UPDATE class SET startingyear = '${classobject.startingyear}' WHERE classname = '${classobject.classname}'`;
+            connection.query(sql, (err) => {
+                if (err) throw err;
+                console.log('1 record updated');
+            });
+            for (let i = 0; i < students.length; i++) {
+                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result);  
+            }
+        }
     });
 
 }
 
-function imagePathFunction(imagePath, student, connection) {
+function imagePathFunction(imagePath, student, connection, result) {
     fs.readFile(imagePath, (err, data) => {
         if (err) {
             console.error('Fehler beim Lesen der Datei:', err);
         }
         student.image = data;
-        let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)`
+        if (result.length == 0) {
+            let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)`
                 
                 connection.query(sql, [student.lastname, student.firstname, student.image, student.classname], (err) => {
                     if (err) throw err;
                     console.log('1 record inserted');
                     console.log('student:', student);
                 });
+        } else {
+            let sql = `UPDATE student SET image = ? WHERE lastname = ? AND firstname = ? AND classname = ?`
+            connection.query(sql, [student.image, student.lastname, student.firstname, student.classname], (err) => {
+                if (err) throw err;
+                console.log('1 record updated');
+                console.log('student:', student);
+            });
+        }
+        
     
     });;
 }
