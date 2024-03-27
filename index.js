@@ -254,7 +254,7 @@ app.post('/pdfupload',  (req, res) => {
     if (err) {
       return res.end('Error uploading file');
     } else {
-      res.end('File is uploaded');
+      res.end({message: 'File is uploaded'});
       parser(req, res, connection);
       
     }
@@ -265,11 +265,22 @@ app.get('/allclasses', (req, res) => {
   connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
                     GROUP BY class.classname`, (err, rows) => {
-    if (err) throw err;
-    res.send(rows);
+                    if (err) throw err;
+                    res.send(rows);
   });
 });
 
+app.get('/allteacherclasses', (req, res) => {
+  let loggedInTeacher = req.query.teacherID;
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    INNER JOIN teacher_class ON class.classname = teacher_class.classname
+                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
+                    WHERE test_teacher.teacherID = "${loggedInTeacher}"`, (err, rows) => {
+                      if (err) throw err;
+                      res.send(rows);
+                    });
+});
 
 app.get('/allclasses/:classname', (req, res) => {
   let classname = req.params.classname;
