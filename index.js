@@ -262,7 +262,9 @@ app.post('/pdfupload',  (req, res) => {
 })
 
 app.get('/allclasses', (req, res) => {
-  connection.query('SELECT * FROM class', (err, rows) => {
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    GROUP BY class.classname`, (err, rows) => {
     if (err) throw err;
     res.send(rows);
   });
@@ -287,7 +289,7 @@ app.post('/teacherclass', (req, res) => {
   let sql = `INSERT INTO teacher_class (teacherID, classname) VALUES (?, ?)`;
   connection.query(sql, [teacherID, classname], (err) => {
     if (err) throw err;
-    console.log('1 record inserted');
+    console.log('Class added to teacher');
     res.json({message: 'Class added to teacher'});
   });
 })
