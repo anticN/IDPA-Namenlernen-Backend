@@ -227,7 +227,8 @@ app.post('/class/students', (req, res) => { // put /home before for security
                     INNER JOIN class ON student.classname = class.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
                     INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
-                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}";`, (err, rows) => {
+                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}"
+                    ORDER BY student.lastname ASC;`, (err, rows) => {
                       if(err) throw err;
                       res.send(rows);
                     });
