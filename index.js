@@ -283,12 +283,23 @@ app.get('/allclasses/:classname', (req, res) => {
 app.post('/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
+  let favorised = req.body.favorised;
   console.log(req);
-  let sql = `INSERT INTO teacher_class (teacherID, classname) VALUES (?, ?)`;
-  connection.query(sql, [teacherID, classname], (err) => {
+  // if pair of teacherID and classname does not exist, insert it else update it
+  connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, result) => {
     if (err) throw err;
-    console.log('1 record inserted');
-    res.json({message: 'Class added to teacher'});
+    if (result.length == 0) {
+      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}")`, (err) => {
+        if (err) throw err;
+        console.log('1 record inserted');
+      });
+    } else {
+      favorised = !favorised;
+      connection.query(`UPDATE teacher_class SET favorised = "${favorised}" WHERE teacherID = "${teacherID}" AND classname ="${classname}"`, (err) => {
+        if (err) throw err;
+        console.log('1 record updated');
+      });
+    }
   });
 })
 
