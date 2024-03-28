@@ -298,7 +298,7 @@ app.post('/teacherclass', (req, res) => {
   let classname = req.body.classname;
   console.log(req);
     if (err) throw err;
-      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}")`, (err) => {
+      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
         if (err) throw err;
         console.log('Class added to teacher');
         res.json({message: 'Class added to teacher'});
