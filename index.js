@@ -253,8 +253,8 @@ app.post('/pdfupload',  (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.end('Error uploading file');
-    } else {
-      res.end({message: 'File is uploaded'});
+    } else {      
+      res.json({message: 'File uploaded'});
       parser(req, res, connection);
       
     }
@@ -298,24 +298,24 @@ app.post('/teacherclass', (req, res) => {
   let classname = req.body.classname;
   let favorised = req.body.favorised;
   console.log(req);
-  // if pair of teacherID and classname does not exist, insert it else update it
-  connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, result) => {
     if (err) throw err;
-    if (result.length == 0) {
-      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}")`, (err) => {
+      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}", "${favorised}")`, (err) => {
         if (err) throw err;
         console.log('Class added to teacher');
         res.json({message: 'Class added to teacher'});
       });
-    } else {
-      favorised = !favorised;
-      connection.query(`UPDATE teacher_class SET favorised = "${favorised}" WHERE teacherID = "${teacherID}" AND classname ="${classname}"`, (err) => {
-        if (err) throw err;
-        console.log('1 record updated');
-      });
-    }
+})
+
+app.delete('/teacherclass', (req, res) => {
+  let teacherID = req.body.teacherID;
+  let classname = req.body.classname;
+  connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err) => {
+    if (err) throw err;
+    console.log('Class removed from teacher');
+    res.json({message: 'Class removed from teacher'});
   });
 })
+
 
 app.get('/teachers/:teacherID', (req, res) => {
   let id = req.params.teacherID;

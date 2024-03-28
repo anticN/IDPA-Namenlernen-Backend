@@ -44,7 +44,6 @@ CREATE TABLE teacher_class (
 	teacher_classID INT PRIMARY KEY AUTO_INCREMENT,
     teacherID INT,
     classname VARCHAR(50),
-    favorised BOOLEAN,
     FOREIGN KEY (teacherID)	
         REFERENCES test_teacher (teacherID), /*test_teacher mit teacher ersetzen*/
     FOREIGN KEY (classname)
