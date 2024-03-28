@@ -207,28 +207,28 @@ app.get('/student', (req, res) => {
 app.get('/home/class', (req, res) => {
   // teacher will be shown all his classes
   let loggedInTeacher = req.session.email;
-  connection.query(`SELECT teacher.firstname, teacher.lastname, class.classname, subject.subjectname
+  connection.query(`SELECT teacher.firstname, teacher.lastname, class.classname
                     FROM teacher 
                     INNER JOIN teacher_class ON teacher.teacherID = teacher_class.teacherID 
                     INNER JOIN class ON teacher_class.classname = class.classname 
-                    INNER JOIN teacher_class_subject ON teacher_class.teacher_classID = teacher_class_subject.teacher_classID 
-                    INNER JOIN subject  ON teacher_class_subject.subjectID = subject.subjectID 
                     WHERE teacher.email = "${loggedInTeacher}";`, (err, rows) => {
      if (err) throw err;
      res.send(rows);
   });
 });
 
-app.get('/home/class/students', (req, res) => {
+app.post('/class/students', (req, res) => { // put /home before for security
   // teacher selects a class and gets all students in that class
-  let loggedInTeacher = req.session.email;
+  //let loggedInTeacher = req.session.email;          --> Change to this when session is implemented
+  let loggedInTeacher = req.body.email;
   let classname = req.body.classname;
   /*TODO replace test_teacher with teacher*/
   connection.query(`SELECT student.lastname, student.firstname, student.image, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
                     INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
-                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}";`, (err, rows) => {
+                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}"
+                    ORDER BY student.lastname ASC;`, (err, rows) => {
                       if(err) throw err;
                       res.send(rows);
                     });
@@ -254,7 +254,7 @@ app.post('/pdfupload',  (req, res) => {
     if (err) {
       return res.end('Error uploading file');
     } else {
-      res.end('File is uploaded');
+      res.end({message: 'File is uploaded'});
       parser(req, res, connection);
       
     }
@@ -262,12 +262,25 @@ app.post('/pdfupload',  (req, res) => {
 })
 
 app.get('/allclasses', (req, res) => {
-  connection.query('SELECT classname FROM class', (err, rows) => {
-    if (err) throw err;
-    res.send(rows);
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    GROUP BY class.classname`, (err, rows) => {
+                    if (err) throw err;
+                    res.send(rows);
   });
 });
 
+app.get('/allteacherclasses', (req, res) => {
+  let loggedInTeacher = req.query.teacherID;
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    INNER JOIN teacher_class ON class.classname = teacher_class.classname
+                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
+                    WHERE test_teacher.teacherID = "${loggedInTeacher}"`, (err, rows) => {
+                      if (err) throw err;
+                      res.send(rows);
+                    });
+});
 
 app.get('/allclasses/:classname', (req, res) => {
   let classname = req.params.classname;
@@ -291,7 +304,8 @@ app.post('/teacherclass', (req, res) => {
     if (result.length == 0) {
       connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}")`, (err) => {
         if (err) throw err;
-        console.log('1 record inserted');
+        console.log('Class added to teacher');
+        res.json({message: 'Class added to teacher'});
       });
     } else {
       favorised = !favorised;

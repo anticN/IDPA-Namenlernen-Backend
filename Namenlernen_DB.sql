@@ -52,26 +52,25 @@ CREATE TABLE teacher_class (
 );
 
 
-INSERT INTO class 
-VALUES ("IM21A", 2021),
-        ("IM22A", 2022);
+/*INSERT INTO class 
+VALUES ("I22A", 2022);*/
 
-INSERT INTO student
+/*INSERT INTO student
 VALUES (1, "Müller", "Hans", NULL, "IM21A"),
         (2, "Schmidt", "Lisa", NULL, "IM21A"),
         (3, "Meier", "Peter", NULL, "IM21A"),
         (4, "Schulz", "Anna", NULL, "IM22A"),
         (5, "Fischer", "Lukas", NULL, "IM22A"),
-        (6, "Weber", "Lena", NULL, "IM22A");
+        (6, "Weber", "Lena", NULL, "IM22A");*/
 
 INSERT INTO test_teacher
 VALUES (1, "Moling", "Mike", "test.lehrer@ksh.ch", 0);
 
-INSERT INTO teacher_class
+/*INSERT INTO teacher_class
 VALUES (1,1,"IM21A"),
-        (2,1,"IM22A");
+        (2,1,"IM22A");*/
 
-INSERT INTO subject
+/*INSERT INTO subject
 VALUES (1, "Mathematik"),
         (2, "Deutsch"),
         (3, "Englisch"),
@@ -82,6 +81,6 @@ INSERT INTO teacher_class_subject
 VALUES (1,1),
         (1,2),
         (2,1),
-        (2,2);
+        (2,2);*/
 
  
