@@ -296,7 +296,6 @@ app.get('/allclasses/:classname', (req, res) => {
 app.post('/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
-  let favorised = req.body.favorised;
   console.log(req);
     if (err) throw err;
       connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES ("${teacherID}", "${classname}", "${favorised}")`, (err) => {
