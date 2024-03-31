@@ -257,15 +257,38 @@ app.post('/pdfupload', (req, res) => {
 
 		}
 	})
+app.post('/pdfupload',  (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      return res.end('Error uploading file');
+    } else {      
+      res.json({message: 'File uploaded'});
+      parser(req, res, connection);
+      
+    }
+  })
 })
 
 app.get('/allclasses', (req, res) => {
-	connection.query('SELECT * FROM class', (err, rows) => {
-		if (err) throw err;
-		res.send(rows);
-	});
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    GROUP BY class.classname`, (err, rows) => {
+                    if (err) throw err;
+                    res.send(rows);
+  });
 });
 
+app.get('/allteacherclasses', (req, res) => {
+  let loggedInTeacher = req.query.teacherID;
+  connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
+                    LEFT JOIN student ON class.classname = student.classname
+                    INNER JOIN teacher_class ON class.classname = teacher_class.classname
+                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
+                    WHERE test_teacher.teacherID = "${loggedInTeacher}"`, (err, rows) => {
+                      if (err) throw err;
+                      res.send(rows);
+                    });
+});
 
 app.get('/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
@@ -279,16 +302,26 @@ app.get('/allclasses/:classname', (req, res) => {
 
 
 app.post('/teacherclass', (req, res) => {
-	let teacherID = req.body.teacherID;
-	let classname = req.body.classname;
-	console.log(req);
-	let sql = `INSERT INTO teacher_class (teacherID, classname) VALUES (?, ?)`;
-	connection.query(sql, [teacherID, classname], (err) => {
-		if (err) throw err;
-		console.log('1 record inserted');
-		res.json({ message: 'Class added to teacher' });
-	});
+  let teacherID = req.body.teacherID;
+  let classname = req.body.classname;
+  console.log(req);
+      connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
+        if (err) throw err;
+        console.log('Class added to teacher');
+        res.json({message: 'Class added to teacher'});
+      });
 })
+
+app.delete('/teacherclass', (req, res) => {
+  let teacherID = req.body.teacherID;
+  let classname = req.body.classname;
+  connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err) => {
+    if (err) throw err;
+    console.log('Class removed from teacher');
+    res.json({message: 'Class removed from teacher'});
+  });
+})
+
 
 app.get('/teachers/:teacherID', (req, res) => {
 	let id = req.params.teacherID;
