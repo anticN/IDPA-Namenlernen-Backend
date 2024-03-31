@@ -69,18 +69,3 @@ VALUES (1, "Moling", "Mike", "test.lehrer@ksh.ch", 0);
 INSERT INTO teacher_class
 VALUES (1,1,"IM21A"),
         (2,1,"IM22A");
-
-INSERT INTO subject
-VALUES (1, "Mathematik"),
-        (2, "Deutsch"),
-        (3, "Englisch"),
-        (4, "Sport"),
-        (5, "Informatik");
-
-INSERT INTO teacher_class_subject
-VALUES (1,1),
-        (1,2),
-        (2,1),
-        (2,2);
-
- 
