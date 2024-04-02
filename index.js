@@ -257,6 +257,9 @@ app.post('/pdfupload', (req, res) => {
 
 		}
 	})
+})
+
+
 app.post('/pdfupload',  (req, res) => {
   upload(req, res, (err) => {
     if (err) {
@@ -379,5 +382,4 @@ app.post('/results', (req, res) => {
 app.listen(port, () => {
 	checkLogType({ message: `Server running on port: ${port}` });
 	console.log(`Server running on port: ${port}`);
-})
-
+});
