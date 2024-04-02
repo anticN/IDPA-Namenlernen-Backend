@@ -57,6 +57,7 @@ function dataParser(pdfpath, req, connection) {
                 let studentObj = {
                     lastname: studentname[1],
                     firstname: studentname[0],
+                    nickname: null,
                     image: null,
                     classname: classname
                 }

@@ -296,7 +296,7 @@ app.get('/allclasses/:classname', (req, res) => {
 app.post('/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
-  console.log(req);
+  console.log(req.body);
       connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
         if (err) throw err;
         console.log('Class added to teacher');
@@ -326,6 +326,43 @@ app.get('/teachers/:teacherID', (req, res) => {
                       res.send(rows);
   });
 })
+
+app.get('/teachers/:teacherID/results', (req, res) => {
+  let id = req.params.teacherID;
+  connection.query(`select class.classname, results.flashcard_result, results.exercise_result, results.minigame_result from results
+  JOIN teacher_class ON results.teacher_classID = teacher_class.teacher_classID
+  JOIN class ON teacher_class.classname = class.classname
+  WHERE teacherID = "${id}";`, (err, rows) => {
+    if (err) throw err;
+    res.send(rows);
+  });
+});
+
+app.put('/nickname', (req, res) => {
+  let studentID = req.body.studentID;
+  let nickname = req.body.nickname;
+  console.log(req.body);
+  connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
+    if (err) throw err;
+    console.log('Nickname updated');
+    res.json({message: 'Nickname updated'});
+  });
+});
+
+app.post('/results', (req, res) => {
+  let teacher_classID = req.body.teacher_classID;
+  let flashcard_result = req.body.flashcard_result;
+  let exercise_result = req.body.exercise_result;
+  let minigame_result = req.body.minigame_result;
+  let sql = `INSERT INTO results (teacher_classID, flashcard_result, exercise_result, minigame_result) VALUES (?,?,?,?)`;
+
+  connection.query(sql , [teacher_classID, flashcard_result, exercise_result, minigame_result], (err) => {
+    if (err) throw err;
+    console.log('Results added');
+    res.json({message: 'Results added'});
+  });
+});
+
 
 
 

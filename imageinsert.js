@@ -43,9 +43,9 @@ function imagePathFunction(imagePath, student, connection, result) {
         }
         student.image = data;
         if (result.length == 0) {
-            let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)`
+            let sql = `INSERT INTO student (lastname, firstname, nickname, image, classname) VALUES (?, ?, ?, ?, ?)`
                 
-                connection.query(sql, [student.lastname, student.firstname, student.image, student.classname], (err) => {
+                connection.query(sql, [student.lastname, student.firstname, null, student.image, student.classname], (err) => {
                     if (err) throw err;
                     console.log('1 record inserted');
                     console.log('student:', student);

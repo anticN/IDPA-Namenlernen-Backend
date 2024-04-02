@@ -14,6 +14,7 @@ CREATE TABLE student (
     studentID INT PRIMARY KEY AUTO_INCREMENT,
     lastname VARCHAR(50),
     firstname VARCHAR(50),
+    nickname VARCHAR(50),
     image BLOB,
     classname VARCHAR(50),
     FOREIGN KEY (classname)
@@ -48,6 +49,16 @@ CREATE TABLE teacher_class (
         REFERENCES test_teacher (teacherID), /*test_teacher mit teacher ersetzen*/
     FOREIGN KEY (classname)
         REFERENCES class (classname)
+);
+
+CREATE TABLE results (
+	resultsID INT PRIMARY KEY AUTO_INCREMENT,
+    flashcard_result INT,
+    exercise_result INT,
+    minigame_result INT,
+    teacher_classID INT,
+    FOREIGN KEY (teacher_classID)
+		REFERENCES teacher_class (teacher_classID)
 );
 
 
