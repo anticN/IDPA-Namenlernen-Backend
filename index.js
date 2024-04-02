@@ -246,19 +246,6 @@ let storage = multer.diskStorage({
 
 let upload = multer({ storage: storage }).single('file')
 
-// upload the pdf
-app.post('/pdfupload', (req, res) => {
-	upload(req, res, (err) => {
-		if (err) {
-			return res.end('Error uploading file');
-		} else {
-			res.end('File is uploaded');
-			parser(req, res, connection);
-
-		}
-	})
-})
-
 
 app.post('/pdfupload',  (req, res) => {
   upload(req, res, (err) => {
