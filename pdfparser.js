@@ -13,7 +13,7 @@ function parser (req, res, connection) {
         exportImages(pdfpath, 'uploads').then(() => {
             console.log('Images uploaded')
             dataParser(pdfpath, req,connection);
- 
+
         });
 }
 
@@ -70,10 +70,6 @@ function dataParser(pdfpath, req, connection) {
             }
             console.log('classobject:', classobject);
             insertImage(students, classobject, connection);
-
-            
-
-            
         });
 }
 
