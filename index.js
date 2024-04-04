@@ -179,7 +179,7 @@ app.post("/login", (req, res) => {
 });
 
 //logout process, destroys the session
-app.delete('/logout', (req, res) => {
+app.delete('/home/logout', (req, res) => {
 	if (req.session.email != null) {
 		checkLogType({ message: `User ${req.session.email} logged out` });
 		req.session.email = undefined
@@ -190,12 +190,12 @@ app.delete('/logout', (req, res) => {
 	}
 })
 
-app.post('/imagepost', (req, res) => {
+app.post('/home//imagepost', (req, res) => {
 	insertImage(connection);
 	res.json({ message: 'Image inserted' });
 })
 
-app.get('/student', (req, res) => {
+app.get('/home/student', (req, res) => {
 	connection.query('SELECT * FROM student', (err, rows) => {
 		if (err) throw err;
 		res.send(rows);
@@ -215,7 +215,7 @@ app.get('/home/class', (req, res) => {
 	});
 });
 
-app.post('/class/students', (req, res) => { // put /home before for security
+app.post('/home/class/students', (req, res) => { // put /home before for security
 	// teacher selects a class and gets all students in that class
 	//let loggedInTeacher = req.session.email;          --> Change to this when session is implemented
 	let loggedInTeacher = req.body.email;
@@ -248,7 +248,7 @@ let upload = multer({ storage: storage }).single('file')
 
 
 
-app.post('/pdfupload',  (req, res) => {
+app.post('/home/pdfupload',  (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.end('Error uploading file');
@@ -260,7 +260,7 @@ app.post('/pdfupload',  (req, res) => {
   })
 })
 
-app.get('/allclasses', (req, res) => {
+app.get('/home/allclasses', (req, res) => {
   connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
                     GROUP BY class.classname`, (err, rows) => {
@@ -269,7 +269,7 @@ app.get('/allclasses', (req, res) => {
   });
 });
 
-app.get('/allteacherclasses', (req, res) => {
+app.get('/home/allteacherclasses', (req, res) => {
   let loggedInTeacher = req.query.teacherID;
   connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
@@ -281,7 +281,7 @@ app.get('/allteacherclasses', (req, res) => {
                     });
 });
 
-app.get('/allclasses/:classname', (req, res) => {
+app.get('/home/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
 	connection.query(`SELECT firstname, lastname, image, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
@@ -292,7 +292,7 @@ app.get('/allclasses/:classname', (req, res) => {
 });
 
 
-app.post('/teacherclass', (req, res) => {
+app.post('/home/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
   console.log(req.body);
@@ -303,7 +303,7 @@ app.post('/teacherclass', (req, res) => {
       });
 })
 
-app.delete('/teacherclass', (req, res) => {
+app.delete('/home/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
   connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err) => {
@@ -314,7 +314,7 @@ app.delete('/teacherclass', (req, res) => {
 })
 
 
-app.get('/teachers/:teacherID', (req, res) => {
+app.get('/home/teachers/:teacherID', (req, res) => {
 	let id = req.params.teacherID;
 	connection.query(`SELECT test_teacher.firstname, test_teacher.lastname, test_teacher.email, GROUP_CONCAT(class.classname SEPARATOR ', ') AS classes FROM test_teacher
                     LEFT JOIN teacher_class ON test_teacher.teacherID = teacher_class.teacherID
@@ -326,7 +326,7 @@ app.get('/teachers/:teacherID', (req, res) => {
 	});
 })
 
-app.get('/teachers/:teacherID/results', (req, res) => {
+app.get('/home/teachers/:teacherID/results', (req, res) => {
   let id = req.params.teacherID;
   connection.query(`select class.classname, results.flashcard_result, results.exercise_result, results.minigame_result from results
   JOIN teacher_class ON results.teacher_classID = teacher_class.teacher_classID
@@ -337,7 +337,7 @@ app.get('/teachers/:teacherID/results', (req, res) => {
   });
 });
 
-app.put('/nickname', (req, res) => {
+app.put('/home/nickname', (req, res) => {
   let studentID = req.body.studentID;
   let nickname = req.body.nickname;
   console.log(req.body);
@@ -348,7 +348,7 @@ app.put('/nickname', (req, res) => {
   });
 });
 
-app.post('/results', (req, res) => {
+app.post('/home/results', (req, res) => {
   let teacher_classID = req.body.teacher_classID;
   let flashcard_result = req.body.flashcard_result;
   let exercise_result = req.body.exercise_result;
