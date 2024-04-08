@@ -190,7 +190,7 @@ app.delete('/home/logout', (req, res) => {
 	}
 })
 
-app.post('/home//imagepost', (req, res) => {
+app.post('/home/imagepost', (req, res) => {
 	insertImage(connection);
 	res.json({ message: 'Image inserted' });
 })
