@@ -253,7 +253,6 @@ app.post('/home/pdfupload',  (req, res) => {
     if (err) {
       return res.end('Error uploading file');
     } else {      
-      res.json({message: 'File uploaded'});
       parser(req, res, connection);
       
     }

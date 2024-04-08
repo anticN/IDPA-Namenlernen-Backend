@@ -12,17 +12,21 @@ function parser (req, res, connection) {
     // read out the images and the text from the pdf
         exportImages(pdfpath, 'uploads').then(() => {
             console.log('Images uploaded')
-            dataParser(pdfpath, req,connection);
+            dataParser(pdfpath, req,connection,res);
 
         });
 }
 
-function dataParser(pdfpath, req, connection) {
+function dataParser(pdfpath, req, connection, res) {
     let dataBuffer = fs.readFileSync(pdfpath);
     
         pdf(dataBuffer).then(function(data) {
             // read out the images and the text from the pdf
             let docname = req.file.originalname.split('.')[0];
+            /*if (!docname.includes('Klassenspiegel_')) {
+                return res.status(400).send({error: 'Bitte laden Sie eine Klassenliste hoch!'});
+                
+            }*/
             let classname = docname.split('_')[1];
             let classnumber = classname.replace(/\D/g, '');
             classnumber = parseInt(classnumber);
@@ -70,7 +74,7 @@ function dataParser(pdfpath, req, connection) {
                 startingyear: startingyear
             }
             console.log('classobject:', classobject);
-            insertImage(students, classobject, connection);
+            insertImage(students, classobject, connection, res);
         });
 }
 

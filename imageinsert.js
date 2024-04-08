@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-function insertImage(students, classobject, connection) {
+function insertImage(students, classobject, connection, res) {
     console.log('000students:', students);
     console.log('000classobject:', classobject);
 
@@ -19,9 +19,10 @@ function insertImage(students, classobject, connection) {
             });
 
             for (let i = 0; i < students.length; i++) {
-                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result);
+                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);
                 
             }
+            sendResponse(res)
         } else {
             let sql = `UPDATE class SET startingyear = '${classobject.startingyear}' WHERE classname = '${classobject.classname}'`;
             connection.query(sql, (err) => {
@@ -29,14 +30,15 @@ function insertImage(students, classobject, connection) {
                 console.log('1 record updated');
             });
             for (let i = 0; i < students.length; i++) {
-                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result);  
+                imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);  
             }
+            sendResponse(res)
         }
     });
 
 }
 
-function imagePathFunction(imagePath, student, connection, result) {
+function imagePathFunction(imagePath, student, connection, result, res) {
     fs.readFile(imagePath, (err, data) => {
         if (err) {
             console.error('Fehler beim Lesen der Datei:', err);
@@ -50,6 +52,7 @@ function imagePathFunction(imagePath, student, connection, result) {
                     console.log('1 record inserted');
                     console.log('student:', student);
                 });
+        
         } else {
             let sql = `UPDATE student SET image = ? WHERE lastname = ? AND firstname = ? AND classname = ?`
             connection.query(sql, [student.image, student.lastname, student.firstname, student.classname], (err) => {
@@ -57,10 +60,18 @@ function imagePathFunction(imagePath, student, connection, result) {
                 console.log('1 record updated');
                 console.log('student:', student);
             });
+
+            
         }
+        
+        
         
     
     });;
+}
+
+function sendResponse(res) {
+    res.status(200).send({message: 'Klassenliste erfolgreich hochgeladen!'});
 }
 
 export {insertImage};
