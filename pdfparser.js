@@ -23,10 +23,10 @@ function dataParser(pdfpath, req, connection, res) {
         pdf(dataBuffer).then(function(data) {
             // read out the images and the text from the pdf
             let docname = req.file.originalname.split('.')[0];
-            /*if (!docname.includes('Klassenspiegel_')) {
+            if (!docname.includes('Klassenspiegel_')) {
                 return res.status(400).send({error: 'Bitte laden Sie eine Klassenliste hoch!'});
                 
-            }*/
+            }
             let classname = docname.split('_')[1];
             let classnumber = classname.replace(/\D/g, '');
             classnumber = parseInt(classnumber);
