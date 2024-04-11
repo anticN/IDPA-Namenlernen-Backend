@@ -224,8 +224,8 @@ app.post('/home/class/students', (req, res) => { // put /home before for securit
 	connection.query(`SELECT student.lastname, student.firstname, student.image, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
-                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
-                    WHERE test_teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}"
+                    INNER JOIN teacher ON teacher_class.teacherID = teacher.teacherID
+                    WHERE teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}"
                     ORDER BY student.lastname ASC;`, (err, rows) => {
 		if (err) throw err;
 		res.send(rows);
@@ -273,8 +273,8 @@ app.get('/home/allteacherclasses', (req, res) => {
   connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
-                    INNER JOIN test_teacher ON teacher_class.teacherID = test_teacher.teacherID
-                    WHERE test_teacher.teacherID = "${loggedInTeacher}"`, (err, rows) => {
+                    INNER JOIN teacher ON teacher_class.teacherID = teacher.teacherID
+                    WHERE teacher.teacherID = "${loggedInTeacher}"`, (err, rows) => {
                       if (err) throw err;
                       res.send(rows);
                     });
@@ -334,11 +334,11 @@ app.delete('/home/teacherclass', (req, res) => {
 
 app.get('/home/teachers/:teacherID', (req, res) => {
 	let id = req.params.teacherID;
-	connection.query(`SELECT test_teacher.firstname, test_teacher.lastname, test_teacher.email, GROUP_CONCAT(class.classname SEPARATOR ', ') AS classes FROM test_teacher
-                    LEFT JOIN teacher_class ON test_teacher.teacherID = teacher_class.teacherID
+	connection.query(`SELECT teacher.firstname, teacher.lastname, teacher.email, GROUP_CONCAT(class.classname SEPARATOR ', ') AS classes FROM teacher
+                    LEFT JOIN teacher_class ON teacher.teacherID = teacher_class.teacherID
                     LEFT JOIN class ON teacher_class.classname = class.classname
-                    WHERE test_teacher.teacherID = "${id}"
-                    GROUP BY test_teacher.teacherID`, (err, rows) => {
+                    WHERE teacher.teacherID = "${id}"
+                    GROUP BY teacher.teacherID`, (err, rows) => {
 		if (err) throw err;
 		res.send(rows);
 	});

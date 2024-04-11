@@ -32,13 +32,6 @@ CREATE TABLE teacher (
     isVerified BOOLEAN
 );
 
-CREATE TABLE test_teacher (
-    teacherID INT PRIMARY KEY AUTO_INCREMENT,
-    lastname VARCHAR(50),
-    firstname VARCHAR(50),
-    email VARCHAR(50),
-    isVerified BOOLEAN
-);
 
 
 CREATE TABLE teacher_class (
