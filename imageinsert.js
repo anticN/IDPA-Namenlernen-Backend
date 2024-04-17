@@ -22,7 +22,7 @@ function insertImage(students, classobject, connection, res) {
                 imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);
                 
             }
-            sendResponse(res)
+            sendResponse(res, true)
         } else {
             let sql = `UPDATE class SET startingyear = '${classobject.startingyear}' WHERE classname = '${classobject.classname}'`;
             connection.query(sql, (err) => {
@@ -32,7 +32,7 @@ function insertImage(students, classobject, connection, res) {
             for (let i = 0; i < students.length; i++) {
                 imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);  
             }
-            sendResponse(res)
+            sendResponse(res, false)
         }
     });
 
@@ -70,8 +70,12 @@ function imagePathFunction(imagePath, student, connection, result, res) {
     });;
 }
 
-function sendResponse(res) {
-    res.status(200).send({message: 'Klassenliste erfolgreich hochgeladen!'});
+function sendResponse(res, insert) {
+    if (insert) {
+        res.status(200).send({message: 'Klassenliste erfolgreich hochgeladen!'});
+    } else {
+        res.status(200).send({message: 'Klassenliste erfolgreich aktualisiert!'});
+    }
 }
 
 export {insertImage};

@@ -102,6 +102,7 @@ app.post("/signup", function (req, res) {
 			// returns an error if the user tries to sign up with an invalid email
 			console.log("Bitte geben Sie eine gültige E-Mail-Adresse ein!");
 			res.status(401).json({ error: "Bitte geben Sie eine gültige E-Mail-Adresse ein!" });
+			return;
 		}
 		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (error, result) => {
 			// checks if the email already exists in the DB
@@ -158,6 +159,10 @@ app.post("/signup", function (req, res) {
 app.post("/login", (req, res) => {
 	const password = req.body.password
 	const uEmail = req.body.email
+	if (uEmail == undefined || password == undefined || Object.keys(req.body).length != 2) {
+		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
+		return;
+	}
 	// checks if the user exists in the DB
 	connection.query(`SELECT email, salt, hashedPW FROM teacher WHERE email='${uEmail}';`, (err, udata) => {
 		if (err) {
@@ -199,10 +204,6 @@ app.delete('/home/logout', (req, res) => {
 	}
 })
 
-app.post('/home/imagepost', (req, res) => {
-	insertImage(connection);
-	res.json({ message: 'Image inserted' });
-})
 
 app.get('/home/student', (req, res) => {
 	connection.query('SELECT * FROM student', (err, rows) => {
@@ -210,36 +211,6 @@ app.get('/home/student', (req, res) => {
 		res.send(rows);
 	});
 });
-
-app.get('/home/class', (req, res) => {
-	// teacher will be shown all his classes
-	let loggedInTeacher = req.session.email;
-	connection.query(`SELECT teacher.firstname, teacher.lastname, class.classname
-                    FROM teacher 
-                    INNER JOIN teacher_class ON teacher.teacherID = teacher_class.teacherID 
-                    INNER JOIN class ON teacher_class.classname = class.classname 
-                    WHERE teacher.email = "${loggedInTeacher}";`, (err, rows) => {
-		if (err) throw err;
-		res.send(rows);
-	});
-});
-
-app.post('/home/class/students', (req, res) => { // put /home before for security
-	// teacher selects a class and gets all students in that class
-	//let loggedInTeacher = req.session.email;          --> Change to this when session is implemented
-	let loggedInTeacher = req.body.email;
-	let classname = req.body.classname;
-	/*TODO replace test_teacher with teacher*/
-	connection.query(`SELECT student.lastname, student.firstname, student.image, class.classname FROM student
-                    INNER JOIN class ON student.classname = class.classname
-                    INNER JOIN teacher_class ON class.classname = teacher_class.classname
-                    INNER JOIN teacher ON teacher_class.teacherID = teacher.teacherID
-                    WHERE teacher.email = "${loggedInTeacher}" AND class.classname = "${classname}"
-                    ORDER BY student.lastname ASC;`, (err, rows) => {
-		if (err) throw err;
-		res.send(rows);
-	});
-})
 
 
 
@@ -279,6 +250,7 @@ app.get('/home/allclasses', (req, res) => {
 
 app.get('/home/allteacherclasses', (req, res) => {
   let loggedInTeacher = req.query.teacherID;
+  console.log(loggedInTeacher);
   connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
@@ -295,8 +267,15 @@ app.get('/home/allclasses/:classname', (req, res) => {
                     INNER JOIN class ON student.classname = class.classname 
                     WHERE class.classname = "${classname}"`, (err, rows) => {
 		if (err) throw err;
+		
+
+		if (rows.length == 0) {
+			res.status(400).json({ error: 'Bitte geben Sie eine gültige Klasse an' });
+			return;
+		}
 		res.send(rows);
 	});
+
 });
 
 
@@ -306,17 +285,17 @@ app.post('/home/teacherclass', (req, res) => {
   
 
   if (!teacherID || !classname || Object.keys(req.body).length != 2) {
-	res.status(400).json({ error: 'Please provide teacherID and classname' });
+	res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
 	return;
   }
   console.log(req.body);
       connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
         if (err) {
 			
-			res.status(400).json({ error: 'Class or Teacher not found' });
+			res.status(400).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
 		} else {
-			console.log('Class added to teacher');
-			res.json({message: 'Class added to teacher'});
+			console.log('Klasse zum Lehrer hinzugefügt');
+			res.json({message: 'Klasse zum Lehrer hinzugefügt'});
 		}
         
       });
@@ -329,11 +308,15 @@ app.delete('/home/teacherclass', (req, res) => {
 	res.status(400).json({ error: 'Please provide teacherID and classname' });
 	return;
   }
-  connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err) => {
+  connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
     if (err) {
 			
 		res.status(400).json({ error: 'Class or Teacher not found' });
 	} else {
+		if (rows.affectedRows == 0) {
+			res.status(400).json({ error: 'Class or Teacher not found' });
+			return;
+		}
 		console.log('Class removed from teacher');
 		res.json({message: 'Class removed from teacher'});
 	}
@@ -349,6 +332,10 @@ app.get('/home/teachers/:teacherID', (req, res) => {
                     WHERE teacher.teacherID = "${id}"
                     GROUP BY teacher.teacherID`, (err, rows) => {
 		if (err) throw err;
+		if (rows.length == 0) {
+			res.status(400).json({ error: 'Teacher not found' });
+			return;
+		}
 		res.send(rows);
 	});
 })
@@ -360,6 +347,10 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
   JOIN class ON teacher_class.classname = class.classname
   WHERE teacherID = "${id}";`, (err, rows) => {
     if (err) throw err;
+	if (rows.length == 0) {
+		res.status(400).json({ error: 'Teacher not found' });
+		return;
+	}
     res.send(rows);
   });
 });
@@ -388,7 +379,7 @@ app.post('/home/results', (req, res) => {
   let flashcard_result = req.body.flashcard_result;
   let exercise_result = req.body.exercise_result;
   let minigame_result = req.body.minigame_result;
-  if (teacher_classID == undefined || teacher_classID == undefined || exercise_result == undefined || minigame_result ==  undefined || Object.keys(req.body).length != 4) {
+  if (teacher_classID == undefined || flashcard_result == undefined || exercise_result == undefined || minigame_result ==  undefined || Object.keys(req.body).length != 4) {
 	res.status(400).json({ error: 'Please provide teacher_classID, flashcard_result, exercise_result and minigame_result' });
 	return;
   }
