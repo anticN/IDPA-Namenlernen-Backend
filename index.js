@@ -91,9 +91,18 @@ app.post("/signup", function (req, res) {
 	let row = '';
 	const email = req.body.email;
 	const password = req.body.password;
+	if (email == undefined || password == undefined || Object.keys(req.body).length != 2){
+		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
+		return;
+	}
 	console.log(email);
 	try {
 		const credentials = email.split("@");
+		if (credentials.length != 2) {
+			// returns an error if the user tries to sign up with an invalid email
+			console.log("Bitte geben Sie eine gültige E-Mail-Adresse ein!");
+			res.status(401).json({ error: "Bitte geben Sie eine gültige E-Mail-Adresse ein!" });
+		}
 		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (error, result) => {
 			// checks if the email already exists in the DB
 			if (error) {
