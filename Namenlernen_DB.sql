@@ -51,7 +51,7 @@ CREATE TABLE results (
     minigame_result INT,
     teacher_classID INT,
     FOREIGN KEY (teacher_classID)
-		REFERENCES teacher_class (teacher_classID)
+		REFERENCES teacher_class (teacher_classID) ON DELETE CASCADE
 );
 
 
