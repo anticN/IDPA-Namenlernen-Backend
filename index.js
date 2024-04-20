@@ -91,7 +91,17 @@ app.post("/signup", function (req, res) {
 	let row = '';
 	const email = req.body.email;
 	const password = req.body.password;
+	console.log(req.body);
 	if (email == undefined || password == undefined || Object.keys(req.body).length != 2){
+		if (email == undefined) {
+			console.log(1);
+		} 
+		if (password == undefined) {
+			console.log(2);
+		} 
+		if (Object.keys(req.body).length != 2) {
+			console.log(3);
+		} 
 		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
 		return;
 	}
@@ -198,7 +208,7 @@ app.delete('/home/logout', (req, res) => {
 		checkLogType({ message: `User ${req.session.email} logged out` });
 		req.session.email = undefined
 		console.log('Logged out');
-		return res.status(200).json({ message: 'Logged out!' })
+		return res.status(200).json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
 	} else {
 		return res.status(401).json({ error: 'Not logged in!' })
 	}
@@ -305,20 +315,20 @@ app.delete('/home/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
   let classname = req.body.classname;
   if (!teacherID || !classname || Object.keys(req.body).length != 2) {
-	res.status(400).json({ error: 'Please provide teacherID and classname' });
+	res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
 	return;
   }
   connection.query(`DELETE FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
     if (err) {
 			
-		res.status(400).json({ error: 'Class or Teacher not found' });
+		res.status(400).json({ error: 'Klasse oder Lehrer nicht gefunden' });
 	} else {
 		if (rows.affectedRows == 0) {
-			res.status(400).json({ error: 'Class or Teacher not found' });
+			res.status(400).json({ error: 'Klasse oder Lehrer nicht gefunden' });
 			return;
 		}
 		console.log('Class removed from teacher');
-		res.json({message: 'Class removed from teacher'});
+		res.json({message: 'Klassen von Lehrer entfernt'});
 	}
   });
 })
@@ -333,7 +343,7 @@ app.get('/home/teachers/:teacherID', (req, res) => {
                     GROUP BY teacher.teacherID`, (err, rows) => {
 		if (err) throw err;
 		if (rows.length == 0) {
-			res.status(400).json({ error: 'Teacher not found' });
+			res.status(400).json({ error: 'Lehrer nicht gefunden' });
 			return;
 		}
 		res.send(rows);
@@ -343,12 +353,12 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 app.get('/home/teachers/:teacherID/results', (req, res) => {
   let id = req.params.teacherID;
   connection.query(`select class.classname, results.flashcard_result, results.exercise_result, results.minigame_result from results
-  JOIN teacher_class ON results.teacher_classID = teacher_class.teacher_classID
-  JOIN class ON teacher_class.classname = class.classname
+  RIGHT JOIN teacher_class ON results.teacher_classID = teacher_class.teacher_classID
+  RIGHT JOIN class ON teacher_class.classname = class.classname
   WHERE teacherID = "${id}";`, (err, rows) => {
     if (err) throw err;
 	if (rows.length == 0) {
-		res.status(400).json({ error: 'Teacher not found' });
+		res.status(400).json({ error: 'Lehrer nicht gefunden' });
 		return;
 	}
     res.send(rows);
@@ -359,16 +369,16 @@ app.put('/home/nickname', (req, res) => {
   let studentID = req.body.studentID;
   let nickname = req.body.nickname;
   if (!studentID || !nickname || Object.keys(req.body).length != 2) {
-	res.status(400).json({ error: 'Please provide studentID and nickname' });
+	res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
 	return;
   }
   console.log(req.body);
   connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
     if (err) {
-		res.status(400).json({ error: 'Student not found' });
+		res.status(400).json({ error: 'Student nicht gefunden!' });
 	} else {
 		console.log('Nickname added');
-    	res.json({message: 'Nickname added'});
+    	res.json({message: 'Nickname hinzugefügt'});
 	}
     
   });
@@ -380,43 +390,43 @@ app.post('/home/results', (req, res) => {
   let exercise_result = req.body.exercise_result;
   let minigame_result = req.body.minigame_result;
   if (teacher_classID == undefined || flashcard_result == undefined || exercise_result == undefined || minigame_result ==  undefined || Object.keys(req.body).length != 4) {
-	res.status(400).json({ error: 'Please provide teacher_classID, flashcard_result, exercise_result and minigame_result' });
+	res.status(400).json({ error: 'Bitte geben Sie eine teacher_classID, ein flashcard_result, ein exercise_result und ein minigame_result mit!' });
 	return;
   }
   if (isNaN(flashcard_result) || isNaN(exercise_result) || isNaN(minigame_result)) {
-	res.status(400).json({ error: 'Please provide valid numbers' });
+	res.status(400).json({ error: 'Die Resultate mussen als Zahlen angegeben werden!' });
 	return;
   }
 
   // flashcard_result, exercise_result, minigame_result can only be between 0 and 100
   if (flashcard_result < 0 || flashcard_result > 100 || exercise_result < 0 || exercise_result > 100 || minigame_result < 0 || minigame_result > 100) {
-	res.status(400).json({ error: 'Please provide valid numbers between 0 and 100' });
+	res.status(400).json({ error: 'Die Resultate können nur Zahlen zwischen 1 und 100 sein' });
 	return;
 	  }
 
 
 	connection.query(`SELECT COUNT(*) AS count FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
 		if (err) {
-			res.status(400).json({ error: 'Teacher_classID not found' });
+			res.status(400).json({ error: 'Teacher_classID nicht gefunden' });
 		}
 		if (rows[0].count > 0) {
 			let sql = `UPDATE results SET flashcard_result = ?, exercise_result = ?, minigame_result = ? WHERE teacher_classID = ?`;
 			connection.query(sql, [flashcard_result, exercise_result, minigame_result, teacher_classID], (err) => {
 				if (err) {
-					res.status(400).json({ error: 'Teacher_classID not found' });
+					res.status(400).json({ error: 'Teacher_classID nicht gefunden' });
 				} else {
 					console.log('Results updated');
-					res.json({message: 'Results updated'});
+					res.json({message: 'Resultate aktualisiert'});
 				}
 			});
 		} else {
 			let sql = `INSERT INTO results (teacher_classID, flashcard_result, exercise_result, minigame_result) VALUES (?,?,?,?)`;
 			connection.query(sql , [teacher_classID, flashcard_result, exercise_result, minigame_result], (err) => {
 				if (err) {
-					res.status(400).json({ error: 'Teacher_classID not found' });
+					res.status(400).json({ error: 'Teacher_classID nicht gefunden' });
 				} else {
 					console.log('Results added');
-					res.json({message: 'Results added'});
+					res.json({message: 'Resultate hinzugefügt'});
 				}
 			});
 		}
