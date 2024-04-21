@@ -299,6 +299,11 @@ app.post('/home/teacherclass', (req, res) => {
 	return;
   }
   console.log(req.body);
+  connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
+	if (err) {
+		res.status(400).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
+	}
+	if (rows.length <= 0) {
       connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
         if (err) {
 			
@@ -309,7 +314,11 @@ app.post('/home/teacherclass', (req, res) => {
 		}
         
       });
-})
+	} else {
+		res.status(400).json({ error: 'Diese Verbindung zwischen Lehrer und Klasse existiert bereits!' });
+	}						
+  })
+});
 
 app.delete('/home/teacherclass', (req, res) => {
   let teacherID = req.body.teacherID;
