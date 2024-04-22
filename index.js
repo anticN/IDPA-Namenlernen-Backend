@@ -205,12 +205,12 @@ app.post("/login", (req, res) => {
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!` });
 				req.session.loggedin = true;
 			} else {
-				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}${formatClient(req)}` });
-				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername" })
+				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
+				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
 			}
 		} else {
-			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}${formatClient(req)}` });
-			res.status(400).json({ error: "Falsches Passwort oder falscher Benutzername" })
+			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
+			res.status(400).json({ error: "Falsches Passwort oder falscher Benutzername!" })
 		}
 	});
 });
@@ -312,8 +312,8 @@ app.get('/home/allclasses/:classname', (req, res) => {
 		
 
 		if (rows.length == 0) {
-			checkLogType({ error: `Klasse ${classname} nicht gefunden${formatClient(req)}` });
-			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an' });
+			checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an!' });
 			return;
 		}
 		checkLogType({ message: `Alle Schüler der Klasse ${classname} wurden abgerufen${formatClient(req)}` });
@@ -401,8 +401,8 @@ app.delete('/home/teacherclass', (req, res) => {
 		throw err;
 	}else {
 		if (rows.affectedRows == 0) {
-			checkLogType({ error: `Klasse oder Lehrer nicht gefunden${formatClient(req)}` });
-			res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden' });
+			checkLogType({ error: `Klasse oder Lehrer nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
 			return;
 		}
 		console.log('Class removed from teacher');
@@ -427,8 +427,8 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 							throw err;
 						}
 		if (rows.length == 0) {
-			checkLogType({ error: `Lehrer nicht gefunden${formatClient(req)}` });
-			res.status(404).json({ error: 'Lehrer nicht gefunden' });
+			checkLogType({ error: `Lehrer nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Lehrer nicht gefunden!' });
 			return;
 		}
 		checkLogType({ message: `Lehrer ${rows[0].firstname} ${rows[0].lastname} wurde abgerufen${formatClient(req)}` });
@@ -447,8 +447,8 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
 		throw err;
 	}
 	if (rows.length == 0) {
-		checkLogType({ error: `Lehrer nicht gefunden${formatClient(req)}` });
-		res.status(404).json({ error: 'Lehrer nicht gefunden' });
+		checkLogType({ error: `Lehrer nicht gefunden!${formatClient(req)}` });
+		res.status(404).json({ error: 'Lehrer nicht gefunden!' });
 		return;
 	}
 	checkLogType({ message: `Resultate des Lehrers ${id} wurden abgerufen${formatClient(req)}` });
@@ -509,8 +509,8 @@ app.post('/home/results', (req, res) => {
 
   // flashcard_result, exercise_result, minigame_result can only be between 0 and 100
   if (flashcard_result < 0 || flashcard_result > 100 || exercise_result < 0 || exercise_result > 100 || minigame_result < 0 || minigame_result > 100) {
-	checkLogType({ error: `Es wurden Resultate, welche nicht zwischen 1 und 100 sin mitgegeben${formatClient(req)}` });
-	res.status(400).json({ error: 'Die Resultate können nur Zahlen zwischen 1 und 100 sein' });
+	checkLogType({ error: `Es wurden Resultate, welche nicht zwischen 1 und 100 sin mitgegeben!${formatClient(req)}` });
+	res.status(400).json({ error: 'Die Resultate können nur Zahlen zwischen 1 und 100 sein!' });
 	return;
 	  }
 
@@ -520,8 +520,8 @@ app.post('/home/results', (req, res) => {
 			throw err;
 		}
 		if (rows.length <= 0) {
-			checkLogType({ error: `Teacher_classID nicht gefunden${formatClient(req)}` });
-			res.status(404).json({ error: 'Teacher_classID nicht gefunden' });
+			checkLogType({ error: `Teacher_classID nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Teacher_classID nicht gefunden!' });
 			return;
 		} else {
 
