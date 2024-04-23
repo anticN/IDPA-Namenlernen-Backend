@@ -47,15 +47,21 @@ app.use(bodyParser.json());
 }))*/
 
 app.use('/home', (req, res, process) => {
-	const { cookies } = req.cookies;
-	if(cookies.session_id) {
+	const { cookies } = req;
+	//console.log(req)
+	console.log("Hier ist die Trennung")
+	console.log(cookies.session_id);
+	const sessionData = JSON.parse(cookies.session_id)
+	console.log(sessionData);
+	if(sessionData.session_id) {
 		console.log("cookie exists");
-		connection.query(`SELECT session_id FROM teacher WHERE email='${cookies.email}'`, (err, result) => {
+		connection.query(`SELECT session_id FROM teacher WHERE email = '${sessionData.email}'`, (err, result) => {
 			if(err) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
 			}
-			if(cookies.session_id === result) {
+			console.log(result[0].session_id)
+			if(sessionData.session_id == result[0].session_id) {
 				process()
 			}else{
 				checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
@@ -63,6 +69,7 @@ app.use('/home', (req, res, process) => {
 			}
 		});
 	}else{
+		console.log("Session ID does not exist")
 		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
 		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
 	
@@ -76,7 +83,7 @@ function formatClient(req) {
 //function to add a teacher to DB
 function addTeacherToDB(teacher, res) {
 	const session_id = crypto.randomBytes(16).toString("hex");
-	console.log(session_id);
+	console.log("Session ID des Lehrers: " + session_id);
 	const teacherData = { email: teacher.email, session_id: session_id}
 	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, session_id, isVerified) 
             VALUES ('${teacher.lastname}', '${teacher.firstname}', '${teacher.email}', '${teacher.salt}', '${teacher.hashed}', '${session_id}', '${teacher.verified}')`,
@@ -86,6 +93,7 @@ function addTeacherToDB(teacher, res) {
 				throw err;
 			}
 			console.log('User added to DB', result);
+			console.log(teacherData.session_id);
 			res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000 });
 			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!` });
 		});
@@ -222,7 +230,14 @@ app.post("/login", (req, res) => {
 				//res.status(200).send({content: "User valid"})
 				console.log("User valid");
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
-				res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: crypto.randomBytes(16).toString("hex") }), { maxAge: 900000 });
+				const newSession = crypto.randomBytes(16).toString("hex");
+				connection.query(`UPDATE teacher SET session_id = '${newSession}' WHERE email='${uEmail}'`, (err) => {
+					if (err) {
+						checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+						throw err;
+					}
+				});
+				res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: newSession }), { maxAge: 900000 });
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!` });
 				//req.session.loggedin = true;
 			} else {
@@ -238,21 +253,16 @@ app.post("/login", (req, res) => {
 
 //logout process, destroys the session
 app.delete('/home/logout', (req, res) => {
-	if (req.session.email != null) {
-		checkLogType({ message: `Benutzer ${req.session.email} hat sich ausgeloggt${formatClient(req)}` });
-		req.session.email = undefined
-		console.log('Logged out');
-		connection.query(`UPDATE teacher SET session_id = NULL WHERE email='${req.session.email}'`, (err) => {
-			if (err) {
-				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-				throw err;
-			}
-		});
-		return res.json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
-	} else {
-		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
-		return res.status(401).json({ error: 'Benutzer nich eingeloggt!' })
-	}
+	checkLogType({ message: `Benutzer ${req.cookies.session_id.email} hat sich ausgeloggt${formatClient(req)}` });
+	//req.session.email = undefined
+	console.log('Logged out');
+	connection.query(`UPDATE teacher SET session_id = NULL WHERE email='${req.cookies.session_id.email}'`, (err) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
+	});
+	return res.json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
 })
 
 
