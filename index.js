@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
@@ -32,24 +33,39 @@ const connection = mysql.createConnection({
 connection.connect()
 
 app.use(cors());
+app.use(cookieParser());
 // TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(session({
+/*app.use(session({
 	secret: 'secret',
 	resave: false,
 	saveUninitialized: false,
 	cookie: {}
-}))
+}))*/
 
 app.use('/home', (req, res, process) => {
-	if (req.session.email == null) {
+	const { cookies } = req.cookies;
+	if(cookies.session_id) {
+		console.log("cookie exists");
+		connection.query(`SELECT session_id FROM teacher WHERE email='${cookies.email}'`, (err, result) => {
+			if(err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
+			if(cookies.session_id === result) {
+				process()
+			}else{
+				checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
+				res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
+			}
+		});
+	}else{
 		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
 		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
-	} else {
-		process()
+	
 	}
 })
 
@@ -59,14 +75,18 @@ function formatClient(req) {
 
 //function to add a teacher to DB
 function addTeacherToDB(teacher, res) {
-	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, isVerified) 
-            VALUES ('${teacher.lastname}', '${teacher.firstname}', '${teacher.email}', '${teacher.salt}', '${teacher.hashed}', '${teacher.verified}')`,
+	const session_id = crypto.randomBytes(16).toString("hex");
+	console.log(session_id);
+	const teacherData = { email: teacher.email, session_id: session_id}
+	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, session_id, isVerified) 
+            VALUES ('${teacher.lastname}', '${teacher.firstname}', '${teacher.email}', '${teacher.salt}', '${teacher.hashed}', '${session_id}', '${teacher.verified}')`,
 		[teacher], (err, result) => {
 			if (err) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
 			}
 			console.log('User added to DB', result);
+			res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000 });
 			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!` });
 		});
 }
@@ -159,8 +179,8 @@ app.post("/signup", function (req, res) {
 					// adds the teacher to the DB
 					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
 					addTeacherToDB(teacher, res);
-					req.session.email = email;
-					req.session.loggedin = true;
+					//req.session.email = email;
+					//req.session.loggedin = true;
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
 					console.log("Sie müssen Ihre KSH-Mail verwenden!");
@@ -198,12 +218,13 @@ app.post("/login", (req, res) => {
 
 			// checks if the password is correct
 			if (userpasswd === userHash) {
-				req.session.email = uEmail;
+				//req.session.email = uEmail;
 				//res.status(200).send({content: "User valid"})
 				console.log("User valid");
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
+				res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: crypto.randomBytes(16).toString("hex") }), { maxAge: 900000 });
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!` });
-				req.session.loggedin = true;
+				//req.session.loggedin = true;
 			} else {
 				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
 				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
@@ -221,6 +242,12 @@ app.delete('/home/logout', (req, res) => {
 		checkLogType({ message: `Benutzer ${req.session.email} hat sich ausgeloggt${formatClient(req)}` });
 		req.session.email = undefined
 		console.log('Logged out');
+		connection.query(`UPDATE teacher SET session_id = NULL WHERE email='${req.session.email}'`, (err) => {
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
+		});
 		return res.json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
 	} else {
 		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
