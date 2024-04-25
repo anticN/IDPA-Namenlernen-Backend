@@ -568,16 +568,42 @@ app.post('/home/results', (req, res) => {
 			throw err;
 		}
 		if (rows[0].count > 0) {
-			let sql = `UPDATE results SET flashcard_result = ?, exercise_result = ?, minigame_result = ? WHERE teacher_classID = ?`;
-			connection.query(sql, [flashcard_result, exercise_result, minigame_result, teacher_classID], (err) => {
+			connection.query(`SELECT * FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
-				}else {
-					console.log('Results updated');
-					checkLogType({ message: `Resultate aktualisiert${formatClient(req)}` });
-					res.json({message: 'Resultate aktualisiert'});
 				}
+				let flashcard_result_in_DB = rows[0].flashcard_result;
+				let exercise_result_in_DB = rows[0].exercise_result;
+				let minigame_result_in_DB = rows[0].minigame_result;
+				if (flashcard_result > flashcard_result_in_DB) {
+					connection.query(`UPDATE results SET flashcard_result = ? WHERE teacher_classID = ?`, [flashcard_result, teacher_classID], (err) => {
+						if (err) {
+							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+							throw err;
+						}
+					});
+				}
+				if (exercise_result > exercise_result_in_DB) {
+					connection.query(`UPDATE results SET exercise_result = ? WHERE teacher_classID = ?`, [exercise_result, teacher_classID], (err) => {
+						if (err) {
+							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+							throw err;
+						}
+					});
+				}
+				if (minigame_result > minigame_result_in_DB) {
+					connection.query(`UPDATE results SET minigame_result = ? WHERE teacher_classID = ?`, [minigame_result, teacher_classID], (err) => {
+						if (err) {
+							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+							throw err;
+						}
+					});
+				}
+				console.log('Results updated');
+				checkLogType({ message: `Resultate aktualisiert${formatClient(req)}` });
+				res.status(200).json({message: 'Resultate aktualisiert'});
+
 			});
 		} else {
 			let sql = `INSERT INTO results (teacher_classID, flashcard_result, exercise_result, minigame_result) VALUES (?,?,?,?)`;
