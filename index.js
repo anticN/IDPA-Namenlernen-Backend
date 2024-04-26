@@ -32,21 +32,28 @@ const connection = mysql.createConnection({
 
 connection.connect()
 
+const corsOptions = {
+	//origin: 'http://localhost:5173',
+	credentials: true,
+	//allowedHeaders: ['Content-type', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Credentials', 'Authorization']
+
+}
+
 app.use(cors());
-app.use(cookieParser());
+//app.use(cookieParser());
 // TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-/*app.use(session({
-	secret: 'secret',
+app.use(session({
+	secret: process.env.SECRET,
 	resave: false,
 	saveUninitialized: false,
-	cookie: {}
-}))*/
+	//cookie: {}
+}))
 
-app.use('/home', (req, res, process) => {
+/*app.use('/home', (req, res, process) => {
 	const { cookies } = req;
 	//console.log(req)
 	console.log("Hier ist die Trennung")
@@ -74,6 +81,15 @@ app.use('/home', (req, res, process) => {
 		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
 	
 	}
+})*/
+
+app.use('/home', (req, res, process) => {
+	if (req.session.id == null) {
+		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
+		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
+	} else {
+		process()
+	}
 })
 
 function formatClient(req) {
@@ -81,8 +97,9 @@ function formatClient(req) {
 }
 
 //function to add a teacher to DB
-function addTeacherToDB(teacher, res) {
-	const session_id = crypto.randomBytes(16).toString("hex");
+function addTeacherToDB(teacher, res, req) {
+	//const session_id = crypto.randomBytes(16).toString("hex");
+	const session_id = req.session.id;
 	console.log("Session ID des Lehrers: " + session_id);
 	const teacherData = { email: teacher.email, session_id: session_id}
 	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, session_id, isVerified) 
@@ -94,7 +111,8 @@ function addTeacherToDB(teacher, res) {
 			}
 			console.log('User added to DB', result);
 			console.log(teacherData.session_id);
-			res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000 });
+			//res.cookie('session_id', teacherData, { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
+			//res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
 			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!` });
 		});
 }
@@ -105,9 +123,6 @@ function hashpw(password) {
 	const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex")
 	return { salt, hashed }
 }
-
-
-
 
 
 
@@ -186,8 +201,9 @@ app.post("/signup", function (req, res) {
 					//main(email, "KSHub: Account verification", "Hello, your account has successfully been created!").catch(console.error);
 					// adds the teacher to the DB
 					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
-					addTeacherToDB(teacher, res);
-					//req.session.email = email;
+					console.log("Session id:" + req.session.id)
+					addTeacherToDB(teacher, res, req);
+					req.session.email = email;
 					//req.session.loggedin = true;
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
@@ -226,7 +242,7 @@ app.post("/login", (req, res) => {
 
 			// checks if the password is correct
 			if (userpasswd === userHash) {
-				//req.session.email = uEmail;
+				req.session.email = uEmail;
 				//res.status(200).send({content: "User valid"})
 				console.log("User valid");
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
@@ -237,7 +253,7 @@ app.post("/login", (req, res) => {
 						throw err;
 					}
 				});
-				res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: newSession }), { maxAge: 900000 });
+				//res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: newSession }), { maxAge: 900000, httpOnly: false, sameSite: 'None',secure: true});
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!` });
 				//req.session.loggedin = true;
 			} else {
@@ -264,6 +280,7 @@ app.delete('/home/logout', (req, res) => {
 	});
 	return res.json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
 })
+
 
 
 app.get('/home/student', (req, res) => {
