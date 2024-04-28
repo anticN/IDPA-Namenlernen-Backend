@@ -190,6 +190,7 @@ app.post("/signup", function (req, res) {
 	}
 });
 
+
 //login process, checks if user exists and if password is correct
 app.post("/login", (req, res) => {
 	const password = req.body.password
@@ -281,6 +282,8 @@ app.get('/home/student', (req, res) => {
 		res.send(rows);
 	});
 });
+
+
 
 // storage for the uploaded pdfs
 let storage = multer.diskStorage({
@@ -450,7 +453,9 @@ app.delete('/home/teacherclass', (req, res) => {
 			checkLogType({ message: `Klasse ${classname} wurde von Lehrer ${teacherID} entfernt${formatClient(req)}` });
 			res.json({ message: 'Klassen von Lehrer entfernt' });
 		}
+
 	});
+
 })
 
 
@@ -477,11 +482,10 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 
 app.get('/home/teachers/:teacherID/results', (req, res) => {
 	let id = req.params.teacherID;
-	connection.query(`select class.classname, results.flashcard_result, results.exercise_result, results.minigame_result from results
+	connection.query(`select class.classname, results.practice_result from results
   RIGHT JOIN teacher_class ON results.teacher_classID = teacher_class.teacher_classID
   RIGHT JOIN class ON teacher_class.classname = class.classname
-  WHERE teacherID = "${id}"
-  GROUP BY class.classname, class.staringyear;`, (err, rows) => {
+  WHERE teacherID = "${id}";`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
@@ -533,24 +537,22 @@ app.put('/home/nickname', (req, res) => {
 
 app.post('/home/results', (req, res) => {
 	let teacher_classID = req.body.teacher_classID;
-	let flashcard_result = req.body.flashcard_result;
-	let exercise_result = req.body.exercise_result;
-	let minigame_result = req.body.minigame_result;
-	if (teacher_classID == undefined || flashcard_result == undefined || exercise_result == undefined || minigame_result == undefined || Object.keys(req.body).length != 4) {
-		checkLogType({ error: `Es wurden nicht teacher_classID, flashcard_result, exercise_result und minigame_result mitgegeben!${formatClient(req)}` });
-		res.status(400).json({ error: 'Bitte geben Sie eine teacher_classID, ein flashcard_result, ein exercise_result und ein minigame_result mit!' });
+	let practice_result = req.body.practice_result;
+	if (teacher_classID == undefined || practice_result == undefined || Object.keys(req.body).length != 2) {
+		checkLogType({ error: `Es wurden nicht teacher_classID und practice_result mitgegeben!${formatClient(req)}` });
+		res.status(400).json({ error: 'Bitte geben Sie eine teacher_classID und ein practice_result mit!' });
 		return;
 	}
-	if (isNaN(flashcard_result) || isNaN(exercise_result) || isNaN(minigame_result)) {
-		checkLogType({ error: `Die Resultate sind nicht als Zahlen angegeben worden!${formatClient(req)}` });
-		res.status(400).json({ error: 'Die Resultate mussen als Zahlen angegeben werden!' });
+	if (isNaN(practice_result)) {
+		checkLogType({ error: `Das Resultat ist nicht als Zahl angegeben worden!${formatClient(req)}` });
+		res.status(400).json({ error: 'Das Resultat muss als Zahl angegeben werden!' });
 		return;
 	}
 
 	// flashcard_result, exercise_result, minigame_result can only be between 0 and 100
-	if (flashcard_result < 0 || flashcard_result > 100 || exercise_result < 0 || exercise_result > 100 || minigame_result < 0 || minigame_result > 100) {
-		checkLogType({ error: `Es wurden Resultate, welche nicht zwischen 1 und 100 sin mitgegeben!${formatClient(req)}` });
-		res.status(400).json({ error: 'Die Resultate können nur Zahlen zwischen 1 und 100 sein!' });
+	if (practice_result < 0 || practice_result > 100) {
+		checkLogType({ error: `Es wurden ein Resultat, welches nicht zwischen 1 und 100 ist mitgegeben!${formatClient(req)}` });
+		res.status(400).json({ error: 'Das Resultat kann nur eine Zahl zwischen 1 und 100 sein!' });
 		return;
 	}
 
@@ -564,33 +566,42 @@ app.post('/home/results', (req, res) => {
 			res.status(404).json({ error: 'Teacher_classID nicht gefunden!' });
 			return;
 		} else {
+
 			connection.query(`SELECT COUNT(*) AS count FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
 				}
 				if (rows[0].count > 0) {
-					let sql = `UPDATE results SET flashcard_result = ?, exercise_result = ?, minigame_result = ? WHERE teacher_classID = ?`;
-					connection.query(sql, [flashcard_result, exercise_result, minigame_result, teacher_classID], (err) => {
+					connection.query(`SELECT * FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 							throw err;
-						} else {
-							console.log('Results updated');
-							checkLogType({ message: `Resultate aktualisiert${formatClient(req)}` });
-							res.json({ message: 'Resultate aktualisiert' });
 						}
+						let practice_result_in_DB = rows[0].practice_result;
+						if (practice_result > practice_result_in_DB) {
+							connection.query(`UPDATE results SET practice_result = ? WHERE teacher_classID = ?`, [practice_result, teacher_classID], (err) => {
+								if (err) {
+									checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+									throw err;
+								}
+							});
+						}
+						console.log('Results updated');
+						checkLogType({ message: `Resultat aktualisiert${formatClient(req)}` });
+						res.status(200).json({ message: 'Resultat aktualisiert' });
+
 					});
 				} else {
-					let sql = `INSERT INTO results (teacher_classID, flashcard_result, exercise_result, minigame_result) VALUES (?,?,?,?)`;
-					connection.query(sql, [teacher_classID, flashcard_result, exercise_result, minigame_result], (err) => {
+					let sql = `INSERT INTO results (teacher_classID, practice_result) VALUES (?,?)`;
+					connection.query(sql, [teacher_classID, practice_result], (err) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 							throw err;
 						} else {
 							console.log('Results added');
-							checkLogType({ message: `Resultate hinzugefügt${formatClient(req)}` });
-							res.status(201).json({ message: 'Resultate hinzugefügt' });
+							checkLogType({ message: `Resultat hinzugefügt${formatClient(req)}` });
+							res.status(201).json({ message: 'Resultat hinzugefügt' });
 						}
 					});
 				}
