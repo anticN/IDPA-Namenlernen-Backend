@@ -29,6 +29,7 @@ CREATE TABLE teacher (
     email VARCHAR(50),
     salt VARCHAR(255),
     hashedPW VARCHAR(255),
+    session_id VARCHAR(255),
     isVerified BOOLEAN
 );
 
@@ -39,19 +40,17 @@ CREATE TABLE teacher_class (
     teacherID INT,
     classname VARCHAR(50),
     FOREIGN KEY (teacherID)	
-        REFERENCES test_teacher (teacherID), /*test_teacher mit teacher ersetzen*/
+        REFERENCES teacher (teacherID),
     FOREIGN KEY (classname)
         REFERENCES class (classname)
 );
 
 CREATE TABLE results (
 	resultsID INT PRIMARY KEY AUTO_INCREMENT,
-    flashcard_result INT,
-    exercise_result INT,
-    minigame_result INT,
+    practice_result INT,
     teacher_classID INT,
     FOREIGN KEY (teacher_classID)
-		REFERENCES teacher_class (teacher_classID)
+		REFERENCES teacher_class (teacher_classID) ON DELETE CASCADE
 );
 
 
@@ -66,8 +65,8 @@ VALUES (1, "Müller", "Hans", NULL, "IM21A"),
         (5, "Fischer", "Lukas", NULL, "IM22A"),
         (6, "Weber", "Lena", NULL, "IM22A");*/
 
-INSERT INTO test_teacher
-VALUES (1, "Moling", "Mike", "test.lehrer@ksh.ch", 0);
+/*INSERT INTO test_teacher
+VALUES (1, "Moling", "Mike", "test.lehrer@ksh.ch", 0);*/
 
 /*INSERT INTO teacher_class
 VALUES (1,1,"IM21A"),

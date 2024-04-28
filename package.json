@@ -21,6 +21,7 @@
   "homepage": "https://github.com/anticN/IDPA-Namenlernen-Backend#readme",
   "dependencies": {
     "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",

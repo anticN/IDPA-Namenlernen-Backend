@@ -1,6 +1,8 @@
 import fs from 'fs';
+import { checkLogType } from './logging.js';
+import { formatClient } from './index.js';
 
-function insertImage(students, classobject, connection, res) {
+function insertImage(students, classobject, connection, res, req) {
     console.log('000students:', students);
     console.log('000classobject:', classobject);
 
@@ -8,13 +10,19 @@ function insertImage(students, classobject, connection, res) {
     // else insert it
     let sql = `SELECT * FROM class WHERE classname = '${classobject.classname}'`;
     connection.query(sql,(err, result) => {
-        if (err) throw err;
+        if (err) {
+            checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+            throw err;
+        }
         console.log('result:', result);
         
         if (result.length == 0) {
         let sql = `INSERT INTO class (classname, startingyear) VALUES ('${classobject.classname}', '${classobject.startingyear}')`;
             connection.query(sql, (err) => {
-                if (err) throw err;
+                if (err) {
+                    checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+                    throw err;
+                }
                 console.log('1 record inserted');
             });
 
@@ -22,17 +30,20 @@ function insertImage(students, classobject, connection, res) {
                 imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);
                 
             }
-            sendResponse(res, true)
+            sendResponse(res, true, req)
         } else {
             let sql = `UPDATE class SET startingyear = '${classobject.startingyear}' WHERE classname = '${classobject.classname}'`;
             connection.query(sql, (err) => {
-                if (err) throw err;
+                if (err) {
+                    checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+                    throw err;
+                }
                 console.log('1 record updated');
             });
             for (let i = 0; i < students.length; i++) {
                 imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result, res);  
             }
-            sendResponse(res, false)
+            sendResponse(res, false, req)
         }
     });
 
@@ -48,7 +59,10 @@ function imagePathFunction(imagePath, student, connection, result, res) {
             let sql = `INSERT INTO student (lastname, firstname, nickname, image, classname) VALUES (?, ?, ?, ?, ?)`
                 
                 connection.query(sql, [student.lastname, student.firstname, null, student.image, student.classname], (err) => {
-                    if (err) throw err;
+                    if (err) {
+                        checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+                        throw err;
+                    }
                     console.log('1 record inserted');
                     console.log('student:', student);
                 });
@@ -56,7 +70,10 @@ function imagePathFunction(imagePath, student, connection, result, res) {
         } else {
             let sql = `UPDATE student SET image = ? WHERE lastname = ? AND firstname = ? AND classname = ?`
             connection.query(sql, [student.image, student.lastname, student.firstname, student.classname], (err) => {
-                if (err) throw err;
+                if (err) {
+                    checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+                    throw err;
+                }
                 console.log('1 record updated');
                 console.log('student:', student);
             });
@@ -70,10 +87,12 @@ function imagePathFunction(imagePath, student, connection, result, res) {
     });;
 }
 
-function sendResponse(res, insert) {
+function sendResponse(res, insert, req) {
     if (insert) {
+        checkLogType({message: `Klassenliste erfolgreich hochgeladen!${formatClient(req)}`})
         res.status(200).send({message: 'Klassenliste erfolgreich hochgeladen!'});
     } else {
+        checkLogType({message: `Klassenliste erfolgreich aktualisiert!${formatClient(req)}`})
         res.status(200).send({message: 'Klassenliste erfolgreich aktualisiert!'});
     }
 }

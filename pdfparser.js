@@ -3,6 +3,8 @@ import fs from 'fs';
 import { exportImages } from 'pdf-export-images';
 import { insertImage } from './imageinsert.js';
 import { constants } from 'buffer';
+import { checkLogType } from './logging.js';
+import { formatClient } from './index.js';
 
 
 
@@ -24,6 +26,7 @@ function dataParser(pdfpath, req, connection, res) {
             // read out the images and the text from the pdf
             let docname = req.file.originalname.split('.')[0];
             if (!docname.includes('Klassenspiegel_')) {
+                checkLogType({error: `Es wurde keine Klassenliste hochgeladen!${formatClient(req)}`});
                 return res.status(400).send({error: 'Bitte laden Sie eine Klassenliste hoch!'});
                 
             }
@@ -74,7 +77,7 @@ function dataParser(pdfpath, req, connection, res) {
                 startingyear: startingyear
             }
             console.log('classobject:', classobject);
-            insertImage(students, classobject, connection, res);
+            insertImage(students, classobject, connection, res, req);
         });
 }
 

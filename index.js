@@ -1,5 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
@@ -10,6 +11,7 @@ import { insertImage } from './imageinsert.js';
 import multer from 'multer';
 import bodyParser from 'body-parser';
 import { parser } from './pdfparser.js';
+import { threadId } from 'worker_threads';
 import { threadId } from 'worker_threads';
 
 
@@ -33,6 +35,13 @@ const connection = mysql.createConnection({
 connection.connect()
 
 const corsOptions = {
+	//origin: 'http://localhost:5173',
+	credentials: true,
+	//allowedHeaders: ['Content-type', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Credentials', 'Authorization']
+
+}
+
+const corsOptions = {
 	origin: 'http://localhost:5173',
 	credentials: true,
 	allowedHeaders: ['Content-type', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Headers', 'Access-Control-Allow-Credentials', 'Authorization']
@@ -48,10 +57,42 @@ app.use(bodyParser.json());
 
 app.use(session({
 	secret: process.env.SECRET,
+	secret: process.env.SECRET,
 	resave: false,
 	saveUninitialized: false,
 	//cookie: {}
+	//cookie: {}
 }))
+
+/*app.use('/home', (req, res, process) => {
+	const { cookies } = req;
+	//console.log(req)
+	console.log("Hier ist die Trennung")
+	console.log(cookies.session_id);
+	const sessionData = JSON.parse(cookies.session_id)
+	console.log(sessionData);
+	if(sessionData.session_id) {
+		console.log("cookie exists");
+		connection.query(`SELECT session_id FROM teacher WHERE email = '${sessionData.email}'`, (err, result) => {
+			if(err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
+			console.log(result[0].session_id)
+			if(sessionData.session_id == result[0].session_id) {
+				process()
+			}else{
+				checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
+				res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
+			}
+		});
+	}else{
+		console.log("Session ID does not exist")
+		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
+		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
+	
+	}
+})*/
 
 /*app.use('/home', (req, res, process) => {
 	const { cookies } = req;
@@ -86,6 +127,8 @@ app.use(session({
 app.use('/home', (req, res, process) => {
 	if (req.session.id == null) {
 		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
+	if (req.session.id == null) {
+		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
 		res.status(403).json({ error: 'Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.' })
 	} else {
 		process()
@@ -109,7 +152,14 @@ function addTeacherToDB(teacher, res, req) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
 			}
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
 			console.log('User added to DB', result);
+			console.log(teacherData.session_id);
+			//res.cookie('session_id', teacherData, { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
+			//res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
 			console.log(teacherData.session_id);
 			//res.cookie('session_id', teacherData, { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
 			//res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
@@ -128,6 +178,10 @@ function hashpw(password) {
 
 app.get('/home', (req, res) => {
 	connection.query('SELECT * FROM student', (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
@@ -164,11 +218,16 @@ app.post("/signup", function (req, res) {
 			// returns an error if the user tries to sign up with an invalid email
 			console.log("Bitte geben Sie eine gültige E-Mail-Adresse ein!");
 			checkLogType({ error: `E-Mail Adresse ist ungültig!${formatClient(req)}` });
+			checkLogType({ error: `E-Mail Adresse ist ungültig!${formatClient(req)}` });
 			res.status(401).json({ error: "Bitte geben Sie eine gültige E-Mail-Adresse ein!" });
 			return;
 		}
 		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (err, result) => {
+		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (err, result) => {
 			// checks if the email already exists in the DB
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
 			if (err) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
@@ -181,6 +240,7 @@ app.post("/signup", function (req, res) {
 			console.log('DB result: ' + row);
 			if (row == email) {
 				// returns an error if the user tries to sign up with an email that already exists
+				checkLogType({ error: `Die Email: ${email} wurde bereits verwendet!${formatClient(req)}` });
 				checkLogType({ error: `Die Email: ${email} wurde bereits verwendet!${formatClient(req)}` });
 				console.log(`Signup: Email ${email} already used`);
 				res.status(401).json({ error: `Die Email: ${email} wurde bereits verwendet!` });
@@ -203,17 +263,25 @@ app.post("/signup", function (req, res) {
 					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
 					console.log("Session id:" + req.session.id)
 					addTeacherToDB(teacher, res, req);
+					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
+					console.log("Session id:" + req.session.id)
+					addTeacherToDB(teacher, res, req);
 					req.session.email = email;
+					//req.session.loggedin = true;
 					//req.session.loggedin = true;
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
 					console.log("Sie müssen Ihre KSH-Mail verwenden!");
+					checkLogType({ error: `Es wurde keine KSH-Mail verwendet!${formatClient(req)}` });
 					checkLogType({ error: `Es wurde keine KSH-Mail verwendet!${formatClient(req)}` });
 					res.status(401).json({ error: "Sie müssen Ihre KSH-Mail verwenden!" });
 				}
 			}
 		});
 	}
+	catch (err) {
+		console.log(err);
+		checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 	catch (err) {
 		console.log(err);
 		checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -226,12 +294,15 @@ app.post("/login", (req, res) => {
 	const uEmail = req.body.email
 	if (uEmail == undefined || password == undefined || Object.keys(req.body).length != 2) {
 		checkLogType({ error: `Es wurden nicht E-Mail und Passwort mitgegeben!${formatClient(req)}` });
+		checkLogType({ error: `Es wurden nicht E-Mail und Passwort mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
 		return;
 	}
 	// checks if the user exists in the DB
 	connection.query(`SELECT email, salt, hashedPW FROM teacher WHERE email='${uEmail}';`, (err, udata) => {
 		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		} else if (udata.length > 0) {
@@ -260,8 +331,12 @@ app.post("/login", (req, res) => {
 			} else {
 				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
 				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
+				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
+				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
 			}
 		} else {
+			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
+			res.status(400).json({ error: "Falsches Passwort oder falscher Benutzername!" })
 			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
 			res.status(400).json({ error: "Falsches Passwort oder falscher Benutzername!" })
 		}
@@ -303,6 +378,11 @@ app.post("/checkSession", (req, res) => {
 
 app.get('/home/student', (req, res) => {
 	connection.query('SELECT * FROM student', (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
+		checkLogType({ message: `Alle Schüler wurden abgerufen${formatClient(req)}` });
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
@@ -385,8 +465,11 @@ app.get('/home/allclasses/:classname', (req, res) => {
 		if (rows.length == 0) {
 			checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an!' });
+			checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an!' });
 			return;
 		}
+		checkLogType({ message: `Alle Schüler der Klasse ${classname} wurden abgerufen${formatClient(req)}` });
 		checkLogType({ message: `Alle Schüler der Klasse ${classname} wurden abgerufen${formatClient(req)}` });
 		res.send(rows);
 	});
@@ -399,64 +482,64 @@ app.post('/home/teacherclass', (req, res) => {
 	let classname = req.body.classname;
 	console.log(classname + 'c');
 
-	if (!teacherID || !classname || Object.keys(req.body).length != 2) {
-		console.log(1);
-		checkLogType({ error: `Es wurden nicht teacherID und classname mitgegeben!${formatClient(req)}` })
-		res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
-		return;
-	}
+  if (!teacherID || !classname || Object.keys(req.body).length != 2) {
+	console.log(1);
+	checkLogType({ error: `Es wurden nicht teacherID und classname mitgegeben!${formatClient(req)}` })
+	res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
+	return;
+  } 
 	console.log(2);
-	connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
-		if (err) {
-			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-			throw err;
-		}
-		if (rows.length <= 0) {
-			checkLogType({ error: `Lehrer ${teacherID} nicht gefunden!${formatClient(req)}` });
-			res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
-			return;
-		} else {
-			connection.query(`SELECT * FROM class WHERE classname = "${classname}"`, (err, rows) => {
-				if (err) {
-					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-					throw err;
-				}
-				if (rows.length <= 0) {
-					console.log(4);
-					checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
-					res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
-					return;
-				} else {
-					console.log(req.body);
-					connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
+  connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
+	if (err) {
+		checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+		throw err;
+	}
+	if (rows.length <= 0) {
+		checkLogType({ error: `Lehrer ${teacherID} nicht gefunden!${formatClient(req)}` });
+		res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
+		return;
+	} else {
+		connection.query(`SELECT * FROM class WHERE classname = "${classname}"`, (err, rows) => {
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
+			if (rows.length <= 0) {
+				console.log(4);
+				checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
+				res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
+				return;
+			} else {
+				console.log(req.body);
+				connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
+					if (err) {
+						checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+						throw err;
+					}
+				  if (rows.length <= 0) {
+					connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`,[teacherID, classname], (err) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 							throw err;
-						}
-						if (rows.length <= 0) {
-							connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`, [teacherID, classname], (err) => {
-								if (err) {
-									checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-									throw err;
-								} else {
-									console.log('Klasse zum Lehrer hinzugefügt');
-									checkLogType({ message: `Klasse ${classname} wurde zum Lehrer ${teacherID} hinzugefügt${formatClient(req)}` });
-									res.status(201).json({ message: 'Klasse zum Lehrer hinzugefügt' });
-								}
-
-							});
-						} else {
-							checkLogType({ error: `Diese Verbindung zwischen Lehrer und Klasse existiert bereits!${formatClient(req)}` });
-							res.status(409).json({ error: 'Diese Verbindung zwischen Lehrer und Klasse existiert bereits!' });
-						}
+						}else {
+						  console.log('Klasse zum Lehrer hinzugefügt');
+						  checkLogType({ message: `Klasse ${classname} wurde zum Lehrer ${teacherID} hinzugefügt${formatClient(req)}` });
+						  res.status(201).json({message: 'Klasse zum Lehrer hinzugefügt'});
+					  }
+					  
 					});
-				}
-			});
-		}
-	});
+				  } else {
+						checkLogType({ error: `Diese Verbindung zwischen Lehrer und Klasse existiert bereits!${formatClient(req)}` });
+					  res.status(409).json({ error: 'Diese Verbindung zwischen Lehrer und Klasse existiert bereits!' });
+				  }						
+				});
+			}
+			  });
+	}
+	  });
+	
 
-
-
+  
 });
 
 app.delete('/home/teacherclass', (req, res) => {
@@ -498,8 +581,11 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 		if (rows.length == 0) {
 			checkLogType({ error: `Lehrer nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Lehrer nicht gefunden!' });
+			checkLogType({ error: `Lehrer nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Lehrer nicht gefunden!' });
 			return;
 		}
+		checkLogType({ message: `Lehrer ${rows[0].firstname} ${rows[0].lastname} wurde abgerufen${formatClient(req)}` });
 		checkLogType({ message: `Lehrer ${rows[0].firstname} ${rows[0].lastname} wurde abgerufen${formatClient(req)}` });
 		res.send(rows);
 	});
@@ -527,55 +613,53 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
 });
 
 app.put('/home/nickname', (req, res) => {
-	let studentID = req.body.studentID;
-	let nickname = req.body.nickname;
-	if (!studentID || !nickname || Object.keys(req.body).length != 2) {
-		checkLogType({ error: `Es wurden nicht studentID und nickname mitgegeben!${formatClient(req)}` });
-		res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
-		return;
+  let studentID = req.body.studentID;
+  let nickname = req.body.nickname;
+  if (!studentID || !nickname || Object.keys(req.body).length != 2) {
+	checkLogType({ error: `Es wurden nicht studentID und nickname mitgegeben!${formatClient(req)}` });
+	res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
+	return;
+  }
+  console.log(req.body);
+  connection.query(`SELECT * FROM student WHERE studentID = "${studentID}"`, (err, rows) => {
+	if (err) {
+		checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+		throw err;
 	}
-	console.log(req.body);
-	connection.query(`SELECT * FROM student WHERE studentID = "${studentID}"`, (err, rows) => {
-		if (err) {
-			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-			throw err;
-		}
-		if (rows.length <= 0) {
-			checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
-			res.status(404).json({ error: 'Student nicht gefunden!' });
-			return;
-		} else {
-			connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
-				if (err) {
-					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-					throw err;
-				} else {
-					console.log('Nickname added');
-					checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
-					res.json({ message: 'Nickname hinzugefügt' });
-				}
-
-			});
-		}
-	});
-
+	if (rows.length <= 0) {
+		checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
+		res.status(404).json({ error: 'Student nicht gefunden!' });
+		return;
+	} else {
+		connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}else {
+				console.log('Nickname added');
+				checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
+				res.json({message: 'Nickname hinzugefügt'});
+			}
+			
+		  });
+	}
+	  });
+  
 });
 
 app.post('/home/results', (req, res) => {
-	let teacher_classID = req.body.teacher_classID;
-	let flashcard_result = req.body.flashcard_result;
-	let exercise_result = req.body.exercise_result;
-	let minigame_result = req.body.minigame_result;
-	if (teacher_classID == undefined || flashcard_result == undefined || exercise_result == undefined || minigame_result == undefined || Object.keys(req.body).length != 4) {
-		checkLogType({ error: `Es wurden nicht teacher_classID, flashcard_result, exercise_result und minigame_result mitgegeben!${formatClient(req)}` });
-		res.status(400).json({ error: 'Bitte geben Sie eine teacher_classID, ein flashcard_result, ein exercise_result und ein minigame_result mit!' });
-		return;
-	}
-	if (isNaN(flashcard_result) || isNaN(exercise_result) || isNaN(minigame_result)) {
-		checkLogType({ error: `Die Resultate sind nicht als Zahlen angegeben worden!${formatClient(req)}` });
-		res.status(400).json({ error: 'Die Resultate mussen als Zahlen angegeben werden!' });
-		return;
-	}
+  let teacher_classID = req.body.teacher_classID;
+  let practice_result = req.body.practice_result;
+  if (teacher_classID == undefined || practice_result == undefined|| Object.keys(req.body).length != 2) {
+	checkLogType({ error: `Es wurden nicht teacher_classID und practice_result mitgegeben!${formatClient(req)}` });
+	res.status(400).json({ error: 'Bitte geben Sie eine teacher_classID und ein practice_result mit!' });
+	return;
+  }
+  if (isNaN(practice_result)) {
+	checkLogType({ error: `Das Resultat ist nicht als Zahl angegeben worden!${formatClient(req)}` });
+	res.status(400).json({ error: 'Das Resultat muss als Zahl angegeben werden!' });
+	return;
+  }
 
 	// flashcard_result, exercise_result, minigame_result can only be between 0 and 100
 	if (flashcard_result < 0 || flashcard_result > 100 || exercise_result < 0 || exercise_result > 100 || minigame_result < 0 || minigame_result > 100) {
@@ -594,39 +678,51 @@ app.post('/home/results', (req, res) => {
 			res.status(404).json({ error: 'Teacher_classID nicht gefunden!' });
 			return;
 		} else {
-			connection.query(`SELECT COUNT(*) AS count FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
+
+	connection.query(`SELECT COUNT(*) AS count FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
+		if (rows[0].count > 0) {
+			connection.query(`SELECT * FROM results WHERE teacher_classID = "${teacher_classID}"`, (err, rows) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
 				}
-				if (rows[0].count > 0) {
-					let sql = `UPDATE results SET flashcard_result = ?, exercise_result = ?, minigame_result = ? WHERE teacher_classID = ?`;
-					connection.query(sql, [flashcard_result, exercise_result, minigame_result, teacher_classID], (err) => {
+				let practice_result_in_DB = rows[0].practice_result;
+				if (practice_result > practice_result_in_DB) {
+					connection.query(`UPDATE results SET practice_result = ? WHERE teacher_classID = ?`, [practice_result, teacher_classID], (err) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 							throw err;
-						} else {
-							console.log('Results updated');
-							checkLogType({ message: `Resultate aktualisiert${formatClient(req)}` });
-							res.json({ message: 'Resultate aktualisiert' });
-						}
-					});
-				} else {
-					let sql = `INSERT INTO results (teacher_classID, flashcard_result, exercise_result, minigame_result) VALUES (?,?,?,?)`;
-					connection.query(sql, [teacher_classID, flashcard_result, exercise_result, minigame_result], (err) => {
-						if (err) {
-							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-							throw err;
-						} else {
-							console.log('Results added');
-							checkLogType({ message: `Resultate hinzugefügt${formatClient(req)}` });
-							res.status(201).json({ message: 'Resultate hinzugefügt' });
 						}
 					});
 				}
+				console.log('Results updated');
+				checkLogType({ message: `Resultat aktualisiert${formatClient(req)}` });
+				res.status(200).json({message: 'Resultat aktualisiert'});
+
+			});
+		} else {
+			let sql = `INSERT INTO results (teacher_classID, practice_result) VALUES (?,?)`;
+			connection.query(sql , [teacher_classID, practice_result], (err) => {
+				if (err) {
+					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+					throw err;
+				}else {
+					console.log('Results added');
+					checkLogType({ message: `Resultat hinzugefügt${formatClient(req)}` });
+					res.status(201).json({message: 'Resultat hinzugefügt'});
+				}
 			});
 		}
-	});
+
+
+    
+  });
+}
+});
 });
 
 
@@ -636,4 +732,4 @@ app.listen(port, () => {
 	console.log(`Server running on port: ${port}`);
 });
 
-export { formatClient }
+export {formatClient}
