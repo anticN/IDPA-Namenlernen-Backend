@@ -83,7 +83,7 @@ function addTeacherToDB(teacher, res, req) {
 			console.log(teacherData.session_id);
 			//res.cookie('session_id', teacherData, { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
 			//res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
-			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!` });
+			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!`, session_id: session_id });
 		});
 }
 
@@ -130,11 +130,12 @@ app.post("/signup", function (req, res) {
 	console.log(email);
 	try {
 		const credentials = email.split("@");
-		if (credentials.length != 2) {
+		const names = credentials[0].split(".");
+		if (names.length != 2) {
 			// returns an error if the user tries to sign up with an invalid email
 			console.log("Bitte geben Sie eine gültige E-Mail-Adresse ein!");
 			checkLogType({ error: `E-Mail Adresse ist ungültig!${formatClient(req)}` });
-			res.status(401).json({ error: "Bitte geben Sie eine gültige E-Mail-Adresse ein!" });
+			res.status(401).json({ error: "Bitte geben Sie eine gültige KSH E-Mail-Adresse ein!" });
 			return;
 		}
 		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (err, result) => {
@@ -234,7 +235,7 @@ app.post("/login", (req, res) => {
 			}
 		} else {
 			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
-			res.status(400).json({ error: "Falsches Passwort oder falscher Benutzername!" })
+			res.status(400).json({ error: "Benutzer existiert nicht!" })
 		}
 	});
 });
@@ -325,7 +326,7 @@ app.get('/home/allclasses', (req, res) => {
 });
 
 app.get('/home/allteacherclasses', (req, res) => {
-	let loggedInTeacher = req.query.teacherID;
+	const loggedInTeacher = req.query.session_id;
 	let teacherfirstname = req.query.firstname;
 	let teacherlastname = req.query.lastname;
 	console.log(loggedInTeacher);
@@ -333,7 +334,7 @@ app.get('/home/allteacherclasses', (req, res) => {
                     LEFT JOIN student ON class.classname = student.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
                     INNER JOIN teacher ON teacher_class.teacherID = teacher.teacherID
-                    WHERE teacher.teacherID = "${loggedInTeacher}"
+                    WHERE teacher.session_id = "${loggedInTeacher}"
 					GROUP BY class.classname, class.startingyear`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -348,7 +349,8 @@ app.get('/home/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
 	connection.query(`SELECT firstname, lastname, image, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
-                    WHERE class.classname = "${classname}"`, (err, rows) => {
+                    WHERE class.classname = "${classname}"
+					ORDER BY lastname ASC`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
@@ -368,27 +370,28 @@ app.get('/home/allclasses/:classname', (req, res) => {
 
 
 app.post('/home/teacherclass', (req, res) => {
-	let teacherID = req.body.teacherID;
+	const session_id = req.body.session_id;
 	let classname = req.body.classname;
 	console.log(classname + 'c');
 
-	if (!teacherID || !classname || Object.keys(req.body).length != 2) {
+	if (!session_id || !classname || Object.keys(req.body).length != 2) {
 		console.log(1);
-		checkLogType({ error: `Es wurden nicht teacherID und classname mitgegeben!${formatClient(req)}` })
-		res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
+		checkLogType({ error: `Es wurden nicht session_id und classname mitgegeben!${formatClient(req)}` })
+		res.status(400).json({ error: 'Bitte geben Sie eine session_id und einen Klassennamen mit!' });
 		return;
 	}
 	console.log(2);
-	connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
+	connection.query(`SELECT * FROM teacher WHERE session_id = "${session_id}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		}
 		if (rows.length <= 0) {
-			checkLogType({ error: `Lehrer ${teacherID} nicht gefunden!${formatClient(req)}` });
+			checkLogType({ error: `Lehrer mit der SessionID: ${session_id} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
 			return;
 		} else {
+			const teacherID = rows[0].teacherID;
 			connection.query(`SELECT * FROM class WHERE classname = "${classname}"`, (err, rows) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
