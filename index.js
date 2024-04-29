@@ -435,6 +435,20 @@ app.post('/home/teacherclass', (req, res) => {
 
 });
 
+app.get('/home/teacherclass/:teacherID', (req, res) => {
+	let teacherID = req.params.teacherID;
+	console.log(teacherID);
+	connection.query(`SELECT * FROM teacher_class
+					WHERE teacher_class.teacherID = "${teacherID}" `, (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
+		checkLogType({ message: `Alle Klassen des Lehrers mit der ID ${teacherID} wurden abgerufen${formatClient(req)}` });
+		res.send(rows);
+	});	
+});						
+
 app.delete('/home/teacherclass', (req, res) => {
 	let teacherID = req.body.teacherID;
 	let classname = req.body.classname;
@@ -460,6 +474,18 @@ app.delete('/home/teacherclass', (req, res) => {
 	});
 
 })
+
+app.get('/home/teachers', (req, res) => {
+	connection.query(`SELECT * FROM teacher`, (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		} else {
+			checkLogType({ message: `Alle Lehrer wurden abgerufen${formatClient(req)}` });
+			res.send(rows);
+		}
+	});
+});
 
 
 app.get('/home/teachers/:teacherID', (req, res) => {
