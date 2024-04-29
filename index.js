@@ -454,9 +454,10 @@ app.get('/home/teacherclass/:teacherID', (req, res) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
-		}
+		} else {
 		checkLogType({ message: `Alle Klassen des Lehrers mit der ID ${teacherID} wurden abgerufen${formatClient(req)}` });
 		res.send(rows);
+	}
 	});	
 });						
 
