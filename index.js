@@ -437,7 +437,18 @@ app.post('/home/teacherclass', (req, res) => {
 
 app.get('/home/teacherclass/:teacherID', (req, res) => {
 	let teacherID = req.params.teacherID;
-	console.log(teacherID);
+	// check if the teacher exists
+	connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
+		if (err) {
+			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+			throw err;
+		}
+		if (rows.length == 0) {
+			checkLogType({ error: `Lehrer nicht gefunden!${formatClient(req)}` });
+			res.status(404).json({ error: 'Lehrer nicht gefunden!' });
+			return;
+		}
+	});
 	connection.query(`SELECT * FROM teacher_class
 					WHERE teacher_class.teacherID = "${teacherID}" `, (err, rows) => {
 		if (err) {
