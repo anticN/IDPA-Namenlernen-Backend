@@ -47,7 +47,7 @@ CREATE TABLE teacher_class (
 
 CREATE TABLE results (
 	resultsID INT PRIMARY KEY AUTO_INCREMENT,
-    practice_result INT,
+    practice_result FLOAT,
     teacher_classID INT,
     FOREIGN KEY (teacher_classID)
 		REFERENCES teacher_class (teacher_classID) ON DELETE CASCADE
