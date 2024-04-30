@@ -11,6 +11,8 @@ import multer from 'multer';
 import bodyParser from 'body-parser';
 import { parser } from './pdfparser.js';
 import { threadId } from 'worker_threads';
+import { resolve } from 'path';
+import { rejects } from 'assert';
 
 
 
@@ -92,6 +94,20 @@ function hashpw(password) {
 	const salt = crypto.randomBytes(16).toString("hex")
 	const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex")
 	return { salt, hashed }
+}
+
+async function getTeacherID(sessionID) {
+	return new Promise((resolve, rejects) => {
+		connection.query(`SELECT teacherID FROM teacher WHERE session_id = "${sessionID}"`, (err, rows) => {
+			if (err) {
+				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+				throw err;
+			}
+			console.log(rows[0].teacherID)
+			//return rows[0].teacherID;
+			resolve(rows[0].teacherID);
+		});
+	}) 
 }
 
 
@@ -461,8 +477,8 @@ app.get('/home/teacherclass/:teacherID', (req, res) => {
 	});	
 });						
 
-app.delete('/home/teacherclass', (req, res) => {
-	let teacherID = req.body.teacherID;
+app.delete('/home/teacherclass', async (req, res) => {
+	const teacherID = await getTeacherID(req.body.session_id);
 	let classname = req.body.classname;
 	if (!teacherID || !classname || Object.keys(req.body).length != 2) {
 		res.status(400).json({ error: 'Bitte geben Sie eine teacherID und einen classname mit!' });
@@ -480,7 +496,7 @@ app.delete('/home/teacherclass', (req, res) => {
 			}
 			console.log('Class removed from teacher');
 			checkLogType({ message: `Klasse ${classname} wurde von Lehrer ${teacherID} entfernt${formatClient(req)}` });
-			res.json({ message: 'Klassen von Lehrer entfernt' });
+			res.json({ message: `Klasse ${classname} wurde entfernt` });
 		}
 
 	});
