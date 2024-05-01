@@ -363,7 +363,7 @@ app.get('/home/allteacherclasses', (req, res) => {
 
 app.get('/home/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
-	connection.query(`SELECT firstname, lastname, image, class.classname FROM student
+	connection.query(`SELECT studentID, firstname, lastname, image, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
                     WHERE class.classname = "${classname}"
 					ORDER BY lastname ASC`, (err, rows) => {
