@@ -363,7 +363,7 @@ app.get('/home/allteacherclasses', (req, res) => {
 
 app.get('/home/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
-	connection.query(`SELECT studentID, firstname, lastname, image, class.classname FROM student
+	connection.query(`SELECT studentID, firstname, lastname, image, nickname, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
                     WHERE class.classname = "${classname}"
 					ORDER BY lastname ASC`, (err, rows) => {
@@ -560,7 +560,7 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
 app.put('/home/nickname', (req, res) => {
 	let studentID = req.body.studentID;
 	let nickname = req.body.nickname;
-	if (!studentID || !nickname || Object.keys(req.body).length != 2) {
+	if (!studentID || nickname == undefined || Object.keys(req.body).length != 2) {
 		checkLogType({ error: `Es wurden nicht studentID und nickname mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
 		return;
@@ -576,14 +576,17 @@ app.put('/home/nickname', (req, res) => {
 			res.status(404).json({ error: 'Student nicht gefunden!' });
 			return;
 		} else {
+			if (nickname == '' || nickname == null) {
+				nickname = null;
+			}
 			connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
 				} else {
 					console.log('Nickname added');
-					checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
-					res.json({ message: 'Nickname hinzugefügt' });
+					checkLogType({ message: `Nickname upgedated${formatClient(req)}` });
+					res.json({ message: 'Nickname upgedated' });
 				}
 
 			});
@@ -591,6 +594,8 @@ app.put('/home/nickname', (req, res) => {
 	});
 
 });
+
+
 
 app.post('/home/results', (req, res) => {
 	let teacher_classID = req.body.teacher_classID;
