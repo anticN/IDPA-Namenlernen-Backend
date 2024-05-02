@@ -295,6 +295,7 @@ app.get('/home/student', (req, res) => {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		}
+		// returns all students in the DB
 		checkLogType({ message: `Alle Schüler wurden abgerufen${formatClient(req)}` });
 		res.send(rows);
 	});
@@ -314,7 +315,12 @@ let storage = multer.diskStorage({
 
 let upload = multer({ storage: storage }).single('file')
 
-
+/**
+ * Uploads a pdf file and calls the parser function
+ * @param {Object} req - Client request
+ * @param {Object} res - Server response
+ * @throws {Error} - Returns an error if an error occurs
+*/
 
 app.post('/home/pdfupload', (req, res) => {
 	upload(req, res, (err) => {
@@ -328,6 +334,16 @@ app.post('/home/pdfupload', (req, res) => {
 	})
 })
 
+
+
+/**
+ * Calls all classes
+ * @param {Object} req - Client request
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns all classes
+ * @throws {Error} - Returns an error if an error occurs
+ */
+
 app.get('/home/allclasses', (req, res) => {
 	connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
@@ -340,6 +356,18 @@ app.get('/home/allclasses', (req, res) => {
 		res.send(rows);
 	});
 });
+
+
+/**
+ *  Calls all classes of a teacher
+ * @param {Object} req - Client request
+ * session_id - Session ID of the teacher
+ * firstname - First name of the teacher
+ * lastname - Last name of the teacher
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns all classes of the teacher
+ * @throws {Error} - Returns an error if an error occurs
+ */
 
 app.get('/home/allteacherclasses', (req, res) => {
 	const loggedInTeacher = req.query.session_id;
@@ -361,13 +389,20 @@ app.get('/home/allteacherclasses', (req, res) => {
 	});
 });
 
-app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
+/**
+ * Calls all students of a class
+ * @param {Object} req - Client request
+ * classname - Name of the class
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns all students of the class
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the class is not found
+ */
+
+app.get('/home/allclasses/:classname', (req, res) => {
 	let classname = req.params.classname;
-	let teacherID = await getTeacherID(req.params.session_id);
-	connection.query(`SELECT student.studentID, student.firstname, student.lastname, student.image, nickname.nickname, class.classname FROM student
+	connection.query(`SELECT studentID, firstname, lastname, image, nickname, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
-					LEFT JOIN nickname ON student.studentID = nickname.studentID AND nickname.teacherID = "${teacherID}"
-					LEFT JOIN teacher ON nickname.teacherID = teacher.teacherID		
                     WHERE class.classname = "${classname}"
 					ORDER BY lastname ASC`, (err, rows) => {
 		if (err) {
@@ -375,7 +410,7 @@ app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
 			throw err;
 		}
 
-
+		
 		if (rows.length == 0) {
 			checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an!' });
@@ -387,6 +422,19 @@ app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
 
 });
 
+/**
+ * Adds a class to the teacher
+ * @param {Object} req - Client request
+ * session_id - Session ID of the teacher
+ * classname - Name of the class
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns a message if the class was added to the teacher
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user does not provide a session_id or classname
+ * @throws {Error} - Returns an error if the teacher does not exist
+ * @throws {Error} - Returns an error if the class does not exist
+ * @throws {Error} - Returns an error if the class is already added to the teacher
+ */
 
 app.post('/home/teacherclass', (req, res) => {
 	const session_id = req.body.session_id;
@@ -454,9 +502,18 @@ app.post('/home/teacherclass', (req, res) => {
 
 });
 
+/**
+ * Calls all classes of a teacher
+ * @param {Object} req - Client request
+ * teacherID - ID of the teacher
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns all classes of the teacher
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the teacher does not exist
+ */
+
 app.get('/home/teacherclass/:teacherID', (req, res) => {
 	let teacherID = req.params.teacherID;
-	// check if the teacher exists
 	connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -478,7 +535,19 @@ app.get('/home/teacherclass/:teacherID', (req, res) => {
 		res.send(rows);
 	}
 	});	
-});						
+});
+
+/**
+ * Removes a class from a teacher
+ * @param {Object} req - Client request
+ * session_id - Session ID of the teacher
+ * classname - Name of the class
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns a message if the class was removed
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user does not provide a teacherID or classname
+ * @throws {Error} - Returns an error if the class or teacher does not exist	
+ */
 
 app.delete('/home/teacherclass', async (req, res) => {
 	const teacherID = await getTeacherID(req.body.session_id);
@@ -506,6 +575,14 @@ app.delete('/home/teacherclass', async (req, res) => {
 
 })
 
+/**
+ * Calls all students of a teacher
+ * @param {Object} req - Client request
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns all teachers
+ * @throws {Error} - Returns an error if an error occurs
+ */
+
 app.get('/home/teachers', (req, res) => {
 	connection.query(`SELECT * FROM teacher`, (err, rows) => {
 		if (err) {
@@ -518,6 +595,15 @@ app.get('/home/teachers', (req, res) => {
 	});
 });
 
+/**
+ * Calls a teacher with a given ID
+ * @param {Object} req - Client request
+ * teacherID - ID of the teacher
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns the teacher with the given ID
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the teacher does not exist
+ */
 
 app.get('/home/teachers/:teacherID', (req, res) => {
 	let id = req.params.teacherID;
@@ -540,6 +626,16 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 	});
 })
 
+/**
+ * Calls the results of a teacher
+ * @param {Object} req - Client request
+ * teacherID - ID of the teacher
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns the results from each class of the teacher
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the teacher does not exist
+ */
+
 app.get('/home/teachers/:teacherID/results', (req, res) => {
 	let id = req.params.teacherID;
 	connection.query(`select class.classname, results.practice_result from results
@@ -560,40 +656,41 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
 	});
 });
 
-app.put('/home/nickname', async (req, res) => {
-	const teacherID = await getTeacherID(req.body.session_id);
+/**
+ * Calls the results of a teacher
+ * @param {Object} req - Client request
+ * studentID - ID of the student
+ * nickname - Nickname of the student
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns a message if the nickname was updated
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user does not provide a studentID or nickname
+ * @throws {Error} - Returns an error if the student does not exist
+ */
+
+app.put('/home/nickname', (req, res) => {
 	let studentID = req.body.studentID;
 	let nickname = req.body.nickname;
-	if (!studentID || nickname == undefined || teacherID == undefined || Object.keys(req.body).length != 3) {
+	if (!studentID || nickname == undefined || Object.keys(req.body).length != 2) {
 		checkLogType({ error: `Es wurden nicht studentID und nickname mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
 		return;
 	}
 	console.log(req.body);
-	connection.query(`SELECT * FROM nickname WHERE studentID = "${studentID}" AND teacherID = "${teacherID}"`, (err, rows) => {
+	connection.query(`SELECT * FROM student WHERE studentID = "${studentID}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		}
 		if (rows.length <= 0) {
-			/*checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
+			checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Student nicht gefunden!' });
-			return;*/
-			connection.query(`INSERT INTO nickname (studentID, teacherID, nickname) VALUES (?,?,?)`, [studentID, teacherID, nickname], (err) => {
-				if (err) {
-					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
-					throw err;
-				} else {
-					console.log('Nickname added');
-					checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
-					res.json({ message: 'Nickname hinzugefügt' });
-				}
-			});
+			return;
 		} else {
 			if (nickname == '' || nickname == null) {
 				nickname = null;
 			}
-			connection.query(`UPDATE nickname SET nickname = ? WHERE studentID = ? AND teacherID = ?`, [nickname, studentID, teacherID], (err) => {
+			connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
@@ -610,6 +707,21 @@ app.put('/home/nickname', async (req, res) => {
 });
 
 
+/**
+ * Adds results to a connection between a teacher and a class
+ * if there is no result yet
+ * Updates the result if the result is higher than the previous one
+ * @param {Object} req - Client request
+ * teacher_classID - ID of the connection between teacher and class
+ * practice_result - Result of the practice mode
+ * @param {Object} res - Server response
+ * @returns {Object} - Returns a message if the result was added or updated
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user does not provide a teacher_classID or practice_result
+ * @throws {Error} - Returns an error if the result is not a number
+ * @throws {Error} - Returns an error if the result is not between 1 and 100
+ * @throws {Error} - Returns an error if the teacher_classID does not exist
+ */
 
 app.post('/home/results', (req, res) => {
 	let teacher_classID = req.body.teacher_classID;
@@ -625,7 +737,6 @@ app.post('/home/results', (req, res) => {
 		return;
 	}
 
-	// flashcard_result, exercise_result, minigame_result can only be between 0 and 100
 	if (practice_result < 0 || practice_result > 100) {
 		checkLogType({ error: `Es wurden ein Resultat, welches nicht zwischen 1 und 100 ist mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Das Resultat kann nur eine Zahl zwischen 1 und 100 sein!' });

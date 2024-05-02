@@ -7,11 +7,17 @@ import { checkLogType } from './logging.js';
 import { formatClient } from './index.js';
 
 
+/**
+ * Exports the images from the pdf and calls the dataParser function
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @param {Connection} connection - The connection to the DB
+ * @returns {void}
+ */
 
 function parser (req, res, connection) {
     let pdffilename = req.file.originalname;
     let pdfpath = `uploads/${pdffilename}`;
-    // read out the images and the text from the pdf
         exportImages(pdfpath, 'uploads').then(() => {
             console.log('Images uploaded')
             dataParser(pdfpath, req,connection,res);
@@ -19,11 +25,22 @@ function parser (req, res, connection) {
         });
 }
 
+/**
+ * Reads the Text from the pdf 
+ * and save the data in Objects for the students and the class
+ * and calls the insertImage function
+ * @param {String} pdfpath - The path to the pdf
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @param {Connection} connection - The connection to the DB
+ * @returns {void}
+ * @throws {Error} - If the uploaded file is not a classlist
+ */
+
 function dataParser(pdfpath, req, connection, res) {
     let dataBuffer = fs.readFileSync(pdfpath);
     
         pdf(dataBuffer).then(function(data) {
-            // read out the images and the text from the pdf
             let docname = req.file.originalname.split('.')[0];
             if (!docname.includes('Klassenspiegel_')) {
                 checkLogType({error: `Es wurde keine Klassenliste hochgeladen!${formatClient(req)}`});
@@ -39,7 +56,6 @@ function dataParser(pdfpath, req, connection, res) {
             console.log('year:', year, 'month:', month);
             if (month < 7) {
                 startingyear = year - classnumber;
-                // replace the number in the classname with the last two digits of the startingyear
                 classname = classname.replace(/\d+/, startingyear.toString().slice(2));
             } else {
                 startingyear = (year - classnumber) + 1;
@@ -50,7 +66,6 @@ function dataParser(pdfpath, req, connection, res) {
     
             let students = []
             let lines = data.text.split('\n');
-            // student lines are all the lines after lines[8]
             let studentlines = lines.slice(9);
             console.log('studentlines:', studentlines);        
             for (let i = 0; i < studentlines.length; i++) {
@@ -58,11 +73,8 @@ function dataParser(pdfpath, req, connection, res) {
                 let studentname = student.split(' ');
                 const imagePath = `uploads/img_p0_${i+2}.png`;
 
-        // Lesen Sie den Inhalt der Datei
         
-                
                 let studentObj = {
-                    //last element of studentname is the lastname
                     lastname: studentname[studentname.length - 1],
                     firstname: studentname[0],
                     image: null,
