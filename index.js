@@ -457,10 +457,13 @@ app.get('/home/allteacherclasses', (req, res) => {
  * @throws {Error} - Returns an error if the class is not found
  */
 
-app.get('/home/allclasses/:classname', (req, res) => {
+app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
 	let classname = req.params.classname;
-	connection.query(`SELECT studentID, firstname, lastname, image, nickname, class.classname FROM student
+	let teacherID = await getTeacherID(req.params.session_id);
+	connection.query(`SELECT student.studentID, student.firstname, student.lastname, student.image, nickname.nickname, class.classname FROM student
                     INNER JOIN class ON student.classname = class.classname 
+					LEFT JOIN nickname ON student.studentID = nickname.studentID AND nickname.teacherID = "${teacherID}"
+					LEFT JOIN teacher ON nickname.teacherID = teacher.teacherID		
                     WHERE class.classname = "${classname}"
 					ORDER BY lastname ASC`, (err, rows) => {
 		if (err) {
@@ -726,29 +729,40 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
  * @throws {Error} - Returns an error if the student does not exist
  */
 
-app.put('/home/nickname', (req, res) => {
+app.put('/home/nickname', async (req, res) => {
+	const teacherID = await getTeacherID(req.body.session_id);
 	let studentID = req.body.studentID;
 	let nickname = req.body.nickname;
-	if (!studentID || nickname == undefined || Object.keys(req.body).length != 2) {
+	if (!studentID || nickname == undefined || teacherID == undefined || Object.keys(req.body).length != 3) {
 		checkLogType({ error: `Es wurden nicht studentID und nickname mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
 		return;
 	}
 	console.log(req.body);
-	connection.query(`SELECT * FROM student WHERE studentID = "${studentID}"`, (err, rows) => {
+	connection.query(`SELECT * FROM nickname WHERE studentID = "${studentID}" AND teacherID = "${teacherID}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		}
 		if (rows.length <= 0) {
-			checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
+			/*checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Student nicht gefunden!' });
-			return;
+			return;*/
+			connection.query(`INSERT INTO nickname (studentID, teacherID, nickname) VALUES (?,?,?)`, [studentID, teacherID, nickname], (err) => {
+				if (err) {
+					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+					throw err;
+				} else {
+					console.log('Nickname added');
+					checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
+					res.json({ message: 'Nickname hinzugefügt' });
+				}
+			});
 		} else {
 			if (nickname == '' || nickname == null) {
 				nickname = null;
 			}
-			connection.query(`UPDATE student SET nickname = ? WHERE studentID = ?`, [nickname, studentID], (err) => {
+			connection.query(`UPDATE nickname SET nickname = ? WHERE studentID = ? AND teacherID = ?`, [nickname, studentID, teacherID], (err) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
