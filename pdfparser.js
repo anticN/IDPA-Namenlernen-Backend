@@ -65,7 +65,6 @@ function dataParser(pdfpath, req, connection, res) {
                     //last element of studentname is the lastname
                     lastname: studentname[studentname.length - 1],
                     firstname: studentname[0],
-                    nickname: null,
                     image: null,
                     classname: classname
                 }

@@ -14,7 +14,6 @@ CREATE TABLE student (
     studentID INT PRIMARY KEY AUTO_INCREMENT,
     lastname VARCHAR(50),
     firstname VARCHAR(50),
-    nickname VARCHAR(50),
     image BLOB,
     classname VARCHAR(50),
     FOREIGN KEY (classname)
@@ -43,6 +42,17 @@ CREATE TABLE teacher_class (
         REFERENCES teacher (teacherID),
     FOREIGN KEY (classname)
         REFERENCES class (classname)
+);
+
+CREATE TABLE nickname (
+    nicknameID INT PRIMARY KEY AUTO_INCREMENT,
+    teacherID INT,
+    studentID INT,
+    nickname VARCHAR(50),
+    FOREIGN KEY (teacherID)
+        REFERENCES teacher (teacherID),
+    FOREIGN KEY (studentID)
+        REFERENCES student (studentID)
 );
 
 CREATE TABLE results (
