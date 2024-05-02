@@ -1,5 +1,4 @@
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
@@ -42,7 +41,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions));
-//app.use(cookieParser());
 // TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -51,10 +49,10 @@ app.use(bodyParser.json());
 app.use(session({
 	secret: process.env.SECRET,
 	resave: false,
-	saveUninitialized: false,
-	//cookie: {}
+	saveUninitialized: false
 }))
 
+// Middleware to check if the user is logged in
 app.use('/home', (req, res, process) => {
 	if (req.session.id == null) {
 		checkLogType({ error: `Benutzer nicht eingeloggt!${formatClient(req)}` });
@@ -64,16 +62,24 @@ app.use('/home', (req, res, process) => {
 	}
 })
 
+// function to format the client information for log files
 function formatClient(req) {
 	return `\n\t\t\t\t\tClient: ${req.headers['user-agent']} || ${req.ip}`
 }
 
-//function to add a teacher to DB
+/**
+ * Adds a teacher to the database when signing up.
+ * 
+ * @param {object} teacher - The teacher object containing information like email, lastname, firstname, etc.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @param {object} req - The request object representing the HTTP request.
+ * @returns {Response} - Returns a response to the client with a message and the session ID.
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the teacher could not be added to the database
+ */
 function addTeacherToDB(teacher, res, req) {
-	//const session_id = crypto.randomBytes(16).toString("hex");
 	const session_id = req.session.id;
 	console.log("Session ID des Lehrers: " + session_id);
-	const teacherData = { email: teacher.email, session_id: session_id }
 	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, session_id, isVerified) 
             VALUES ('${teacher.lastname}', '${teacher.firstname}', '${teacher.email}', '${teacher.salt}', '${teacher.hashed}', '${session_id}', '${teacher.verified}')`,
 		[teacher], (err, result) => {
@@ -82,20 +88,29 @@ function addTeacherToDB(teacher, res, req) {
 				throw err;
 			}
 			console.log('User added to DB', result);
-			console.log(teacherData.session_id);
-			//res.cookie('session_id', teacherData, { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
-			//res.cookie('session_id', JSON.stringify(teacherData), { maxAge: 900000, httpOnly: false, sameSite: 'Strict'});
 			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!`, session_id: session_id });
 		});
 }
 
-//hashing function for passwords with salt and crypto module
+/**
+ * Hashes a password using a randomly generated salt.
+ * 
+ * @param {string} password - The password to be hashed.
+ * @returns {object} - An object containing the salt and the hashed password.
+ */
 function hashpw(password) {
 	const salt = crypto.randomBytes(16).toString("hex")
 	const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex")
 	return { salt, hashed }
 }
 
+/**
+ * Retrieves the teacher ID associated with the given session ID.
+ * 
+ * @param {string} sessionID - The session ID of the teacher.
+ * @returns {Promise<number>} - A Promise that resolves with the teacher ID.
+ * @throws {Error} - Returns an error if an error occurs
+ */
 async function getTeacherID(sessionID) {
 	return new Promise((resolve, rejects) => {
 		connection.query(`SELECT teacherID FROM teacher WHERE session_id = "${sessionID}"`, (err, rows) => {
@@ -107,11 +122,18 @@ async function getTeacherID(sessionID) {
 			//return rows[0].teacherID;
 			resolve(rows[0].teacherID);
 		});
-	}) 
+	})
 }
 
 
-
+/**
+ * Retrieves all students from the database.
+ * 
+ * @param {object} req - The request object representing the HTTP request.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @returns {Response} - Returns all students from the database.
+ * @throws {Error} - Returns an error if an error occurs
+ */
 app.get('/home', (req, res) => {
 	connection.query('SELECT * FROM student', (err, rows) => {
 		if (err) {
@@ -123,7 +145,19 @@ app.get('/home', (req, res) => {
 });
 
 
-//signup process, checks if teacher exists, if the email format is valid and creates a new account
+/**
+ * Handles the signup process for new users.
+ * Checks if teacher exists, if the email format is valid and creates a new account.
+ * 
+ * @param {object} req - The request object representing the HTTP request.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @returns {Response} - Returns only errors, because the function "addTeacherToDB" handles the success case.
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user tries to sign up with an invalid email
+ * @throws {Error} - Returns an error if the user tries to sign up with an email that already exists
+ * @throws {Error} - Returns an error if the user tries to sign up with a non-KSH email
+ * @throws {Error} - Returns an error if the user tries to sign up without providing an email or password
+ */
 app.post("/signup", function (req, res) {
 	let row = '';
 	const email = req.body.email;
@@ -185,13 +219,11 @@ app.post("/signup", function (req, res) {
 						hashed: passwd_hash.hashed,
 						verified: 0
 					}
-					//main(email, "KSHub: Account verification", "Hello, your account has successfully been created!").catch(console.error);
 					// adds the teacher to the DB
 					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
 					console.log("Session id:" + req.session.id)
 					addTeacherToDB(teacher, res, req);
 					req.session.email = email;
-					//req.session.loggedin = true;
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
 					console.log("Sie müssen Ihre KSH-Mail verwenden!");
@@ -208,10 +240,22 @@ app.post("/signup", function (req, res) {
 });
 
 
-//login process, checks if user exists and if password is correct
+/**
+ * Handles the login process for users, checks if the user exists and if the password is correct.
+ * Updates the session ID in the database and sends a response to the client.
+ * 
+ * @param {object} req - The request object representing the HTTP request.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @returns {Response} - Returns a message if the user was successfully logged in or not.
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the user does not provide an email or password
+ * @throws {Error} - Returns an error if the user does not exist
+ * @throws {Error} - Returns an error if the password or username is incorrect
+ */
 app.post("/login", (req, res) => {
 	const password = req.body.password
 	const uEmail = req.body.email
+	// checks if the user provides an email and password
 	if (uEmail == undefined || password == undefined || Object.keys(req.body).length != 2) {
 		checkLogType({ error: `Es wurden nicht E-Mail und Passwort mitgegeben!${formatClient(req)}` });
 		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
@@ -231,9 +275,9 @@ app.post("/login", (req, res) => {
 			// checks if the password is correct
 			if (userpasswd === userHash) {
 				req.session.email = uEmail;
-				//res.status(200).send({content: "User valid"})
 				console.log("User valid");
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
+				// updates the session ID in the DB
 				const newSession = crypto.randomBytes(16).toString("hex");
 				console.log("Session id:" + newSession)
 				connection.query(`UPDATE teacher SET session_id = '${newSession}' WHERE email='${uEmail}'`, (err) => {
@@ -242,9 +286,7 @@ app.post("/login", (req, res) => {
 						throw err;
 					}
 				});
-				//res.cookie('session_id', JSON.stringify({ email: uEmail, session_id: newSession }), { maxAge: 900000, httpOnly: false, sameSite: 'None',secure: true});
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!`, session_id: newSession });
-				//req.session.loggedin = true;
 			} else {
 				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
 				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
@@ -256,10 +298,17 @@ app.post("/login", (req, res) => {
 	});
 });
 
-//logout process, destroys the session
+
+/**
+ * Handles the logout process for users and deletes the session ID from the database.
+ * 
+ * @param {object} req - The request object representing the HTTP request.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @returns {Response} - Returns a message if the user was successfully logged out.
+ * @throws {Error} - Returns an error if an error occurs
+ */
 app.delete('/home/logout', (req, res) => {
 	checkLogType({ message: `Benutzer ${req.cookies.session_id.email} hat sich ausgeloggt${formatClient(req)}` });
-	//req.session.email = undefined
 	console.log('Logged out');
 	connection.query(`UPDATE teacher SET session_id = NULL WHERE email='${req.cookies.session_id.email}'`, (err) => {
 		if (err) {
@@ -270,12 +319,21 @@ app.delete('/home/logout', (req, res) => {
 	return res.json({ message: 'Sie wurden erfolgreich ausgeloggt!' })
 })
 
+/**
+ * Checks the validity of a session ID.
+ * 
+ * @param {object} req - The request object representing the HTTP request.
+ * @param {object} res - The response object used to send responses back to the client.
+ * @returns {Response} - Returns a message if the session is valid or not.
+ * @throws {Error} - Returns an error if an error occurs
+ * @throws {Error} - Returns an error if the session is invalid
+ */
 app.post("/checkSession", (req, res) => {
 	const session_id = req.body.session_id;
 	// Query the database to check if the session_id exists
 	connection.query(`SELECT * FROM teacher WHERE session_id='${session_id}';`, (err, rows) => {
 		if (err) {
-			checkLogType({ error: `huh: ${err}` });
+			checkLogType({ error: `error: ${err}` });
 			throw err;
 		} else {
 			if (rows.length > 0) {
@@ -283,7 +341,7 @@ app.post("/checkSession", (req, res) => {
 				res.status(200).json({ message: 'Session is valid' });
 			} else {
 				// Session is invalid
-				res.status(401).json({ error: 'Session is kinda invalid' });
+				res.status(401).json({ error: 'Session is invalid' });
 			}
 		}
 	});
@@ -410,7 +468,7 @@ app.get('/home/allclasses/:classname', (req, res) => {
 			throw err;
 		}
 
-		
+
 		if (rows.length == 0) {
 			checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
 			res.status(404).json({ error: 'Bitte geben Sie eine gültige Klasse an!' });
@@ -531,10 +589,10 @@ app.get('/home/teacherclass/:teacherID', (req, res) => {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		} else {
-		checkLogType({ message: `Alle Klassen des Lehrers mit der ID ${teacherID} wurden abgerufen${formatClient(req)}` });
-		res.send(rows);
-	}
-	});	
+			checkLogType({ message: `Alle Klassen des Lehrers mit der ID ${teacherID} wurden abgerufen${formatClient(req)}` });
+			res.send(rows);
+		}
+	});
 });
 
 /**
