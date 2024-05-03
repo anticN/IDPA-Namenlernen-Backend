@@ -4,4 +4,8 @@
 logs/error.log
 logs/server.log
 /uploads
+
+
+
+
 /test/*
