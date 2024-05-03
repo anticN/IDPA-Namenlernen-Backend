@@ -15,10 +15,10 @@ import { formatClient } from './index.js';
  * @returns {void}
  */
 
-function parser (req, res, connection) {
+async function parser (req, res, connection) {
     let pdffilename = req.file.originalname;
     let pdfpath = `uploads/${pdffilename}`;
-        exportImages(pdfpath, 'uploads').then(() => {
+        await exportImages(pdfpath, 'uploads').then(() => {
             dataParser(pdfpath, req,connection,res);
 
         });
@@ -36,10 +36,10 @@ function parser (req, res, connection) {
  * @throws {Error} - If the uploaded file is not a classlist
  */
 
-function dataParser(pdfpath, req, connection, res) {
+async function dataParser(pdfpath, req, connection, res) {
     let dataBuffer = fs.readFileSync(pdfpath);
     
-        pdf(dataBuffer).then(function(data) {
+        await pdf(dataBuffer).then(function(data) {
             let docname = req.file.originalname.split('.')[0];
             if (!docname.includes('Klassenspiegel_')) {
                 checkLogType({error: `Es wurde keine Klassenliste hochgeladen!${formatClient(req)}`});
