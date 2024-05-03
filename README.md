@@ -33,14 +33,18 @@ DB_PASSWORD=IDPA2024
 DB_NAME=learnnames_DB
 SECRET="Very Secret String"
 ```
-5. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
+5. Ordner namens "uploads" erstellen
+```
+Ornder erstellen: /path/to/IDPA-Namenlernen-Backend/uploads
+```
+6. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
 ```
 mysql -u root -p
 ```
 ```
 source /path/to/IDPA-Namenlernen-Backend/Namenlernen_DB.sql
 ```
-6. Server starten
+7. Server starten
 ```
 npm run start
 ```
