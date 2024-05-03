@@ -73,7 +73,8 @@ function insertImage(students, classobject, connection, res, req) {
 function imagePathFunction(imagePath, student, connection, result) {
     fs.readFile(imagePath, (err, data) => {
         if (err) {
-            console.error('Fehler beim Lesen der Datei:', err);
+            checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
+            throw err;
         }
         student.image = data;
         if (result.length == 0) {

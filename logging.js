@@ -18,7 +18,7 @@ function logMessage(message, file) {
 
     fs.appendFile(logFilePath, logEntry, (err) => {
         if (err) {
-            console.error('Error writing to log file:', err);
+            throw err;
         }
     });
 }
