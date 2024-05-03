@@ -417,7 +417,7 @@ app.get('/home/allteacherclasses', (req, res) => {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
 		}
-		checkLogType({ message: `Alle Klassen des Lehrers ${teacherfirstname} ${teacherlastname} wurden abgerufen${formatClient(req)}` });
+		checkLogType({ message: `Alle Klassen des Lehrers ${teacherfirstname} wurden abgerufen${formatClient(req)}` });
 		res.send(rows);
 	});
 });
