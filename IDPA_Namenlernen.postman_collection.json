@@ -1,0 +1,2379 @@
+{
+	"info": {
+		"_postman_id": "615a7c35-1bb7-43d4-a284-e7532e9fab26",
+		"name": "IDPA_Namenlernen",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26136886"
+	},
+	"item": [
+		{
+			"name": "home",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 403\", function () {\r",
+							"    pm.response.to.have.status(403);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Sie sind nicht eingeloggt! Sie müssen sich anmelden um die Applikation nutzen zu können.\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const email = pm.variables.get(\"email\");\r",
+							"const credentials = email.split(\"@\");\r",
+							"const user = credentials[0];\r",
+							"const name = user.split(\".\");\r",
+							"const firstname = name[0]\r",
+							"const lastname = name[1];\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(`Guten Tag 1 2! Ihr Konto wurde erfolgreich erstellt!`);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const randomNumber = Math.floor((Math.random()* 10000 + 1))\r",
+							"const randomNumber2 = Math.floor((Math.random()* 10000 + 1))\r",
+							"const email = `${randomNumber}.${randomNumber2}@ksh.ch`\r",
+							"pm.collectionVariables.set(\"email\", `${email}`)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/signup",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Die Email: 1.2@ksh.ch wurde bereits verwendet!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/signup",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Answer_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Sie müssen Ihre KSH-Mail verwenden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ks.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/signup",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "passworT",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/signup",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup5",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine gültige E-Mail-Adresse ein!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/signup",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Falsches Passwort oder falscher Benutzername!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345679",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/login",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "passworT",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/login",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Willkommen 1.2@ksh.ch! Sie wurden erfolgreich eingeloggt!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "1.2@ksh.ch",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/login",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pdfupload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klassenliste erfolgreich hochgeladen!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1eefe571-0a0d-4650-b3d5-b204160f2eb1"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/pdfupload",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"pdfupload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pdfupload2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klassenliste erfolgreich aktualisiert!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1eefe571-0a0d-4650-b3d5-b204160f2eb1"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/pdfupload",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"pdfupload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pdfupload3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte laden Sie eine Klassenliste hoch!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [
+								"postman-cloud:///1eededa9-637a-4510-9e49-dd60e7b0494d",
+								"/C:/Users/nilsf/OneDrive/Desktop/IMS und BZZ/IDPA/Klassenspiegel_I3a.pdf"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/pdfupload",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"pdfupload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    response = pm.response.json()\r",
+							"    expectedLength = 13\r",
+							"    pm.expect(response.length).to.equal(expectedLength)\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/student",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"student"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teachers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"teacherID\": 1,\r",
+							"        \"lastname\": \"2\",\r",
+							"        \"firstname\": \"1\",\r",
+							"        \"email\": \"1.2@ksh.ch\",\r",
+							"        \"salt\": \"8ad6317caabdb48a0267b290b3f8d2b2\",\r",
+							"        \"hashedPW\": \"3e4c54db5d694b04ede65b856139e0129a50e7c5992963b5423b63143e531df360b6f851a79a0ffcba34f56f5c6878a3f5062c2346b5692ae6e459a27749bb47\",\r",
+							"        \"session_id\": \"4d55d5e6b54ab15cb373c649fa2020a0\",\r",
+							"        \"isVerified\": 0\r",
+							"    };\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teachers",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teachers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allclasses",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"classname\": \"I21a\",\r",
+							"        \"startingyear\": 2021,\r",
+							"        \"amountStudents\": 13\r",
+							"    };\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/allclasses",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"allclasses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allclasses/:classname",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    response = pm.response.json()\r",
+							"    expectedLength = 13\r",
+							"    pm.expect(response.length).to.equal(expectedLength)\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/allclasses/I21a",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"allclasses",
+						"I21a"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allclasses/:classname",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine gültige Klasse an!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/allclasses/III",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"allclasses",
+						"III"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (POST)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klasse zum Lehrer hinzugefügt\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "classname",
+							"value": "I21a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (POST) 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klasse oder Lehrer nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "classname",
+							"value": "I000a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (POST) 3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine teacherID und einen classname mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "nameclass",
+							"value": "I21a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (POST) 4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 409\", function () {\r",
+							"    pm.response.to.have.status(409);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Diese Verbindung zwischen Lehrer und Klasse existiert bereits!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "classname",
+							"value": "I21a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass/:teacherID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"teacher_classID\": 1,\r",
+							"        \"teacherID\": 1,\r",
+							"        \"classname\": \"I21a\"\r",
+							"    }\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teacherclass/1",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass/:teacherID 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Lehrer nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teacherclass/III",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass",
+						"III"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "allteacherclasses",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"classname\": \"I21a\",\r",
+							"        \"startingyear\": 2021,\r",
+							"        \"amountStudents\": 13\r",
+							"    };\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/allteacherclasses?teacherID=1",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"allteacherclasses"
+					],
+					"query": [
+						{
+							"key": "teacherID",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teachers/:teacherID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"firstname\": \"1\",\r",
+							"        \"lastname\": \"2\",\r",
+							"        \"email\": \"1.2@ksh.ch\",\r",
+							"        \"classes\": \"I21a\"\r",
+							"    };\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teachers/1",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teachers",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teachers/:teacherID 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Lehrer nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teachers/7191",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teachers",
+						"7191"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "nickname",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Nickname hinzugefügt\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "studentID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "nickname",
+							"value": "Nickname",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/nickname",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"nickname"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "nickname2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Student nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "studentID",
+							"value": "abcd",
+							"type": "text"
+						},
+						{
+							"key": "nickname",
+							"value": "Nickname",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/nickname",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"nickname"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "nickname3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine studentID und einen nickname mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "studentID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "nick",
+							"value": "Nickname",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/nickname",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"nickname"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Resultat hinzugefügt\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "practice_result",
+							"value": "67",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Resultat aktualisiert\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "practice_result",
+							"value": "77",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Teacher_classID nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "7191",
+							"type": "text"
+						},
+						{
+							"key": "practice_result",
+							"value": "77",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Das Resultat muss als Zahl angegeben werden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "practice_result",
+							"value": "sieben",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results5",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Das Resultat kann nur eine Zahl zwischen 1 und 100 sein!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "practice_result",
+							"value": "1077",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "results6",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine teacher_classID und ein practice_result mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacher_classID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "result",
+							"value": "77",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teachers/:teacherID/results",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    var expectedData = {\r",
+							"        \"classname\": \"I21a\",\r",
+							"        \"practice_result\": 77\r",
+							"    };\r",
+							"    \r",
+							"    var response = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(response).to.deep.include(expectedData);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teachers/1/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teachers",
+						"1",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teachers/:teacherID/results2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Lehrer nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API}}/home/teachers/7191/results",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teachers",
+						"7191",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (DELETE)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klasse oder Lehrer nicht gefunden!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "classname",
+							"value": "I000a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (DELETE) 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Bitte geben Sie eine teacherID und einen classname mit!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "nameclass",
+							"value": "I21a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "teacherclass (DELETE) 3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Klassen von Lehrer entfernt\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "teacherID",
+							"value": "1",
+							"type": "text"
+						},
+						{
+							"key": "classname",
+							"value": "I21a",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/teacherclass",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"teacherclass"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Statuscode 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response_Test\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Sie wurden erfolgreich ausgeloggt!\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{API}}/home/logout",
+					"host": [
+						"{{API}}"
+					],
+					"path": [
+						"home",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": ""
+		}
+	]
+}
