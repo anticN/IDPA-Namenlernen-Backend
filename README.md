@@ -28,9 +28,10 @@ npm install
 ```
 #example
 DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=1234
-DB_DATABASE=learnnames_DB
+DB_USER=idpa
+DB_PASSWORD=IDPA2024
+DB_NAME=learnnames_DB
+SECRET="Very Secret String"
 ```
 5. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
 ```
