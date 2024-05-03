@@ -14,7 +14,33 @@ Das hier ist das Backend der Applikation. Es ist ein NodeJS basiertes Express-Ba
 ## Frontend
 Das Frontend zu unserer Applikation finden Sie <a href="https://github.com/anticN/IDPA-Namenlernen-Frontend">hier</a>.
 
-## Setup
+## Setup mit Bash Datei (init.sh)
+1. Repository klonen
+```
+git clone https://github.com/anticN/IDPA-Namenlernen-Backend.git
+```
+2. In das Verzeichnis wechseln
+3. init.sh ausführen
+```
+bash init.sh
+```
+4. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
+```
+mysql -u idpa -p
+```
+```
+source /path/to/IDPA-Namenlernen-Backend/Namenlernen_DB.sql
+```
+5. Server starten
+```
+npm run start
+```
+Server mit Nodemon starten
+```
+npm run dev
+```
+
+## Setup ohne Bash Datei
 1. Repository klonen
 ```
 git clone https://github.com/anticN/IDPA-Namenlernen-Backend.git
@@ -31,7 +57,7 @@ DB_HOST=localhost
 DB_USER=idpa
 DB_PASSWORD=IDPA2024
 DB_NAME=learnnames_DB
-SECRET="Very Secret String"
+SECRET="Ein beliebiges Secret"
 ```
 5. Ordner namens "uploads" erstellen
 ```
@@ -39,13 +65,26 @@ Ornder erstellen: /path/to/IDPA-Namenlernen-Backend/uploads
 ```
 6. Namenlernen_DB.sql in MySQL importieren bzw. ausführen
 ```
-mysql -u root -p
+mysql -u idpa -p
 ```
 ```
 source /path/to/IDPA-Namenlernen-Backend/Namenlernen_DB.sql
 ```
-7. Server starten
+7. node_modules modifizieren. Sie müssen in der Datei "node_modules/pdf-parse/index.js" alles ab Zeile 6 löschen, so dass die Datei so aussieht.
+```js
+const Fs = require('fs');
+const Pdf = require('./lib/pdf-parse.js');
+
+module.exports = Pdf;
+```
+
+8. Server starten
 ```
 npm run start
 ```
+Server mit Nodemon starten
+```
+npm run dev
+```
+
 

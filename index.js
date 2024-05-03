@@ -835,6 +835,7 @@ app.post('/home/results', (req, res) => {
 
 //listener for the current port
 app.listen(port, () => {
+	console.log(`Der Server läuft auf Port: ${port}`);
 	checkLogType({ message: `Der Server läuft auf Port: ${port}` });
 });
 
