@@ -78,7 +78,7 @@ function imagePathFunction(imagePath, student, connection, result) {
         }
         student.image = data;
         if (result.length == 0) {
-            let sql = `INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)`
+            let sql = 'INSERT INTO student (lastname, firstname, image, classname) VALUES (?, ?, ?, ?)'
                 
                 connection.query(sql, [student.lastname, student.firstname, student.image, student.classname], (err) => {
                     if (err) {
@@ -88,7 +88,7 @@ function imagePathFunction(imagePath, student, connection, result) {
                 });
         
         } else {
-            let sql = `UPDATE student SET image = ? WHERE lastname = ? AND firstname = ? AND classname = ?`
+            let sql = 'UPDATE student SET image = ? WHERE lastname = ? AND firstname = ? AND classname = ?'
             connection.query(sql, [student.image, student.lastname, student.firstname, student.classname], (err) => {
                 if (err) {
                     checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });

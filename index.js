@@ -41,7 +41,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions));
-// TODO when production ready, add cors options: origin, methods, credentials, etc.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -97,8 +96,8 @@ function addTeacherToDB(teacher, res, req) {
  * @returns {object} - An object containing the salt and the hashed password.
  */
 function hashpw(password) {
-	const salt = crypto.randomBytes(16).toString("hex")
-	const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex")
+	const salt = crypto.randomBytes(16).toString('hex')
+	const hashed = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex')
 	return { salt, hashed }
 }
 
@@ -155,7 +154,7 @@ app.get('/home', (req, res) => {
  * @throws {Error} - Returns an error if the user tries to sign up with a non-KSH email
  * @throws {Error} - Returns an error if the user tries to sign up without providing an email or password
  */
-app.post("/signup", function (req, res) {
+app.post('/signup', function (req, res) {
 	let row = '';
 	const email = req.body.email;
 	const password = req.body.password;
@@ -165,12 +164,12 @@ app.post("/signup", function (req, res) {
 		return;
 	}
 	try {
-		const credentials = email.split("@");
-		const names = credentials[0].split(".");
+		const credentials = email.split('@');
+		const names = credentials[0].split('.');
 		if (names.length != 2) {
 			// returns an error if the user tries to sign up with an invalid email
 			checkLogType({ error: `E-Mail Adresse ist ungültig!${formatClient(req)}` });
-			res.status(401).json({ error: "Bitte geben Sie eine gültige KSH E-Mail-Adresse ein!" });
+			res.status(401).json({ error: 'Bitte geben Sie eine gültige KSH E-Mail-Adresse ein!' });
 			return;
 		}
 		connection.query(`SELECT email FROM teacher WHERE email='${email}'`, (err, result) => {
@@ -189,8 +188,8 @@ app.post("/signup", function (req, res) {
 				checkLogType({ error: `Die Email: ${email} wurde bereits verwendet!${formatClient(req)}` });
 				res.status(401).json({ error: `Die Email: ${email} wurde bereits verwendet!` });
 			} else {
-				if (credentials[1] === "ksh.ch") {
-					const names = credentials[0].split(".");
+				if (credentials[1] === 'ksh.ch') {
+					const names = credentials[0].split('.');
 					// hashes the password and saves the salt and hashed password in the DB
 					const passwd_hash = hashpw(password);
 
@@ -209,7 +208,7 @@ app.post("/signup", function (req, res) {
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
 					checkLogType({ error: `Es wurde keine KSH-Mail verwendet!${formatClient(req)}` });
-					res.status(401).json({ error: "Sie müssen Ihre KSH-Mail verwenden!" });
+					res.status(401).json({ error: 'Sie müssen Ihre KSH-Mail verwenden!' });
 				}
 			}
 		});
@@ -232,7 +231,7 @@ app.post("/signup", function (req, res) {
  * @throws {Error} - Returns an error if the user does not exist
  * @throws {Error} - Returns an error if the password or username is incorrect
  */
-app.post("/login", (req, res) => {
+app.post('/login', (req, res) => {
 	const password = req.body.password
 	const uEmail = req.body.email
 	// checks if the user provides an email and password
@@ -250,14 +249,14 @@ app.post("/login", (req, res) => {
 			const userSalt = udata[0].salt;
 			const userHash = udata[0].hashedPW;
 
-			const userpasswd = crypto.pbkdf2Sync(password, userSalt, 1000, 64, "sha512").toString("hex")
+			const userpasswd = crypto.pbkdf2Sync(password, userSalt, 1000, 64, 'sha512').toString('hex')
 
 			// checks if the password is correct
 			if (userpasswd === userHash) {
 				req.session.email = uEmail;
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
 				// updates the session ID in the DB
-				const newSession = crypto.randomBytes(16).toString("hex");
+				const newSession = crypto.randomBytes(16).toString('hex');
 				connection.query(`UPDATE teacher SET session_id = '${newSession}' WHERE email='${uEmail}'`, (err) => {
 					if (err) {
 						checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -267,11 +266,11 @@ app.post("/login", (req, res) => {
 				res.json({ message: `Willkommen ${uEmail}! Sie wurden erfolgreich eingeloggt!`, session_id: newSession });
 			} else {
 				checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
-				res.status(401).json({ error: "Falsches Passwort oder falscher Benutzername!" })
+				res.status(401).json({ error: 'Falsches Passwort oder falscher Benutzername!' })
 			}
 		} else {
 			checkLogType({ error: `Falsches Passwort für Benutzer ${uEmail}!${formatClient(req)}` });
-			res.status(400).json({ error: "Benutzer existiert nicht!" })
+			res.status(400).json({ error: 'Benutzer existiert nicht!' })
 		}
 	});
 });
@@ -305,7 +304,7 @@ app.delete('/home/logout', (req, res) => {
  * @throws {Error} - Returns an error if an error occurs
  * @throws {Error} - Returns an error if the session is invalid
  */
-app.post("/checkSession", (req, res) => {
+app.post('/checkSession', (req, res) => {
 	const session_id = req.body.session_id;
 	// Query the database to check if the session_id exists
 	connection.query(`SELECT * FROM teacher WHERE session_id='${session_id}';`, (err, rows) => {
@@ -356,7 +355,6 @@ let upload = multer({ storage: storage }).single('file')
  * @param {Object} res - Server response
  * @throws {Error} - Returns an error if an error occurs
 */
-
 app.post('/home/pdfupload', (req, res) => {
 	upload(req, res, (err) => {
 		if (err) {
@@ -378,7 +376,6 @@ app.post('/home/pdfupload', (req, res) => {
  * @returns {Object} - Returns all classes
  * @throws {Error} - Returns an error if an error occurs
  */
-
 app.get('/home/allclasses', (req, res) => {
 	connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
@@ -403,7 +400,6 @@ app.get('/home/allclasses', (req, res) => {
  * @returns {Object} - Returns all classes of the teacher
  * @throws {Error} - Returns an error if an error occurs
  */
-
 app.get('/home/allteacherclasses', (req, res) => {
 	const loggedInTeacher = req.query.session_id;
 	let teacherfirstname = req.query.firstname;
@@ -422,6 +418,7 @@ app.get('/home/allteacherclasses', (req, res) => {
 	});
 });
 
+
 /**
  * Calls all students of a class
  * @param {Object} req - Client request
@@ -431,7 +428,6 @@ app.get('/home/allteacherclasses', (req, res) => {
  * @throws {Error} - Returns an error if an error occurs
  * @throws {Error} - Returns an error if the class is not found
  */
-
 app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
 	let classname = req.params.classname;
 	let teacherID = await getTeacherID(req.params.session_id);
@@ -471,7 +467,6 @@ app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
  * @throws {Error} - Returns an error if the class does not exist
  * @throws {Error} - Returns an error if the class is already added to the teacher
  */
-
 app.post('/home/teacherclass', (req, res) => {
 	const session_id = req.body.session_id;
 	let classname = req.body.classname;
@@ -508,7 +503,7 @@ app.post('/home/teacherclass', (req, res) => {
 							throw err;
 						}
 						if (rows.length <= 0) {
-							connection.query(`INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)`, [teacherID, classname], (err) => {
+							connection.query('INSERT INTO teacher_class (teacherID, classname) VALUES (?,?)', [teacherID, classname], (err) => {
 								if (err) {
 									checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 									throw err;
@@ -541,7 +536,6 @@ app.post('/home/teacherclass', (req, res) => {
  * @throws {Error} - Returns an error if an error occurs
  * @throws {Error} - Returns an error if the teacher does not exist
  */
-
 app.get('/home/teacherclass/:teacherID', (req, res) => {
 	let teacherID = req.params.teacherID;
 	connection.query(`SELECT * FROM teacher WHERE teacherID = "${teacherID}"`, (err, rows) => {
@@ -578,7 +572,6 @@ app.get('/home/teacherclass/:teacherID', (req, res) => {
  * @throws {Error} - Returns an error if the user does not provide a teacherID or classname
  * @throws {Error} - Returns an error if the class or teacher does not exist	
  */
-
 app.delete('/home/teacherclass', async (req, res) => {
 	const teacherID = await getTeacherID(req.body.session_id);
 	let classname = req.body.classname;
@@ -611,9 +604,8 @@ app.delete('/home/teacherclass', async (req, res) => {
  * @returns {Object} - Returns all teachers
  * @throws {Error} - Returns an error if an error occurs
  */
-
 app.get('/home/teachers', (req, res) => {
-	connection.query(`SELECT * FROM teacher`, (err, rows) => {
+	connection.query('SELECT * FROM teacher', (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 			throw err;
@@ -633,7 +625,6 @@ app.get('/home/teachers', (req, res) => {
  * @throws {Error} - Returns an error if an error occurs
  * @throws {Error} - Returns an error if the teacher does not exist
  */
-
 app.get('/home/teachers/:teacherID', (req, res) => {
 	let id = req.params.teacherID;
 	connection.query(`SELECT teacher.firstname, teacher.lastname, teacher.email, GROUP_CONCAT(class.classname SEPARATOR ', ') AS classes FROM teacher
@@ -655,6 +646,7 @@ app.get('/home/teachers/:teacherID', (req, res) => {
 	});
 })
 
+
 /**
  * Calls the results of a teacher
  * @param {Object} req - Client request
@@ -664,7 +656,6 @@ app.get('/home/teachers/:teacherID', (req, res) => {
  * @throws {Error} - Returns an error if an error occurs
  * @throws {Error} - Returns an error if the teacher does not exist
  */
-
 app.get('/home/teachers/:teacherID/results', (req, res) => {
 	let id = req.params.teacherID;
 	connection.query(`select class.classname, results.practice_result from results
@@ -696,7 +687,6 @@ app.get('/home/teachers/:teacherID/results', (req, res) => {
  * @throws {Error} - Returns an error if the user does not provide a studentID or nickname
  * @throws {Error} - Returns an error if the student does not exist
  */
-
 app.put('/home/nickname', async (req, res) => {
 	const teacherID = await getTeacherID(req.body.session_id);
 	let studentID = req.body.studentID;
@@ -712,10 +702,7 @@ app.put('/home/nickname', async (req, res) => {
 			throw err;
 		}
 		if (rows.length <= 0) {
-			/*checkLogType({ error: `Student ${studentID} nicht gefunden!${formatClient(req)}` });
-			res.status(404).json({ error: 'Student nicht gefunden!' });
-			return;*/
-			connection.query(`INSERT INTO nickname (studentID, teacherID, nickname) VALUES (?,?,?)`, [studentID, teacherID, nickname], (err) => {
+			connection.query('INSERT INTO nickname (studentID, teacherID, nickname) VALUES (?,?,?)', [studentID, teacherID, nickname], (err) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
@@ -728,7 +715,7 @@ app.put('/home/nickname', async (req, res) => {
 			if (nickname == '' || nickname == null) {
 				nickname = null;
 			}
-			connection.query(`UPDATE nickname SET nickname = ? WHERE studentID = ? AND teacherID = ?`, [nickname, studentID, teacherID], (err) => {
+			connection.query('UPDATE nickname SET nickname = ? WHERE studentID = ? AND teacherID = ?', [nickname, studentID, teacherID], (err) => {
 				if (err) {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
@@ -759,7 +746,6 @@ app.put('/home/nickname', async (req, res) => {
  * @throws {Error} - Returns an error if the result is not between 1 and 100
  * @throws {Error} - Returns an error if the teacher_classID does not exist
  */
-
 app.post('/home/results', (req, res) => {
 	let teacher_classID = req.body.teacher_classID;
 	let practice_result = req.body.practice_result;
@@ -804,7 +790,7 @@ app.post('/home/results', (req, res) => {
 						}
 						let practice_result_in_DB = rows[0].practice_result;
 						if (practice_result > practice_result_in_DB) {
-							connection.query(`UPDATE results SET practice_result = ? WHERE teacher_classID = ?`, [practice_result, teacher_classID], (err) => {
+							connection.query('UPDATE results SET practice_result = ? WHERE teacher_classID = ?', [practice_result, teacher_classID], (err) => {
 								if (err) {
 									checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 									throw err;
@@ -816,7 +802,7 @@ app.post('/home/results', (req, res) => {
 
 					});
 				} else {
-					let sql = `INSERT INTO results (teacher_classID, practice_result) VALUES (?,?)`;
+					let sql = 'INSERT INTO results (teacher_classID, practice_result) VALUES (?,?)';
 					connection.query(sql, [teacher_classID, practice_result], (err) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
