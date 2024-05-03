@@ -79,7 +79,6 @@ function formatClient(req) {
  */
 function addTeacherToDB(teacher, res, req) {
 	const session_id = req.session.id;
-	console.log("Session ID des Lehrers: " + session_id);
 	connection.query(`INSERT INTO teacher (lastname, firstname, email, salt, hashedPW, session_id, isVerified) 
             VALUES ('${teacher.lastname}', '${teacher.firstname}', '${teacher.email}', '${teacher.salt}', '${teacher.hashed}', '${session_id}', '${teacher.verified}')`,
 		[teacher], (err, result) => {
@@ -87,7 +86,6 @@ function addTeacherToDB(teacher, res, req) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
 			}
-			console.log('User added to DB', result);
 			res.status(201).json({ message: `Guten Tag ${teacher.firstname} ${teacher.lastname}! Ihr Konto wurde erfolgreich erstellt!`, session_id: session_id });
 		});
 }
@@ -118,7 +116,6 @@ async function getTeacherID(sessionID) {
 				checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 				throw err;
 			}
-			console.log(rows[0].teacherID)
 			//return rows[0].teacherID;
 			resolve(rows[0].teacherID);
 		});
@@ -162,28 +159,16 @@ app.post("/signup", function (req, res) {
 	let row = '';
 	const email = req.body.email;
 	const password = req.body.password;
-	console.log(req.body);
 	if (email == undefined || password == undefined || Object.keys(req.body).length != 2) {
-		if (email == undefined) {
-			console.log(1);
-		}
-		if (password == undefined) {
-			console.log(2);
-		}
-		if (Object.keys(req.body).length != 2) {
-			console.log(3);
-		}
 		checkLogType({ error: `Es wurden nicht E-Mail und Passwort mitgegeben!${formatClient(req)}` })
 		res.status(400).json({ error: 'Bitte geben Sie eine E-Mail-Adresse und ein Passwort mit!' });
 		return;
 	}
-	console.log(email);
 	try {
 		const credentials = email.split("@");
 		const names = credentials[0].split(".");
 		if (names.length != 2) {
 			// returns an error if the user tries to sign up with an invalid email
-			console.log("Bitte geben Sie eine gültige E-Mail-Adresse ein!");
 			checkLogType({ error: `E-Mail Adresse ist ungültig!${formatClient(req)}` });
 			res.status(401).json({ error: "Bitte geben Sie eine gültige KSH E-Mail-Adresse ein!" });
 			return;
@@ -199,11 +184,9 @@ app.post("/signup", function (req, res) {
 			} else if (result.length > 0) {
 				row = result[0].email;
 			}
-			console.log('DB result: ' + row);
 			if (row == email) {
 				// returns an error if the user tries to sign up with an email that already exists
 				checkLogType({ error: `Die Email: ${email} wurde bereits verwendet!${formatClient(req)}` });
-				console.log(`Signup: Email ${email} already used`);
 				res.status(401).json({ error: `Die Email: ${email} wurde bereits verwendet!` });
 			} else {
 				if (credentials[1] === "ksh.ch") {
@@ -221,12 +204,10 @@ app.post("/signup", function (req, res) {
 					}
 					// adds the teacher to the DB
 					checkLogType({ message: `Benutzer ${teacher.firstname} ${teacher.lastname} wurde zur DB hinzugefügt${formatClient(req)}` });
-					console.log("Session id:" + req.session.id)
 					addTeacherToDB(teacher, res, req);
 					req.session.email = email;
 				} else {
 					// returns an error if the user tries to sign up with a non-KSH email
-					console.log("Sie müssen Ihre KSH-Mail verwenden!");
 					checkLogType({ error: `Es wurde keine KSH-Mail verwendet!${formatClient(req)}` });
 					res.status(401).json({ error: "Sie müssen Ihre KSH-Mail verwenden!" });
 				}
@@ -234,7 +215,6 @@ app.post("/signup", function (req, res) {
 		});
 	}
 	catch (err) {
-		console.log(err);
 		checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 	}
 });
@@ -275,11 +255,9 @@ app.post("/login", (req, res) => {
 			// checks if the password is correct
 			if (userpasswd === userHash) {
 				req.session.email = uEmail;
-				console.log("User valid");
 				checkLogType({ message: `Benutzer ${uEmail} hat sich eingeloggt${formatClient(req)}` });
 				// updates the session ID in the DB
 				const newSession = crypto.randomBytes(16).toString("hex");
-				console.log("Session id:" + newSession)
 				connection.query(`UPDATE teacher SET session_id = '${newSession}' WHERE email='${uEmail}'`, (err) => {
 					if (err) {
 						checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -309,7 +287,6 @@ app.post("/login", (req, res) => {
  */
 app.delete('/home/logout', (req, res) => {
 	checkLogType({ message: `Benutzer ${req.cookies.session_id.email} hat sich ausgeloggt${formatClient(req)}` });
-	console.log('Logged out');
 	connection.query(`UPDATE teacher SET session_id = NULL WHERE email='${req.cookies.session_id.email}'`, (err) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -430,8 +407,6 @@ app.get('/home/allclasses', (req, res) => {
 app.get('/home/allteacherclasses', (req, res) => {
 	const loggedInTeacher = req.query.session_id;
 	let teacherfirstname = req.query.firstname;
-	let teacherlastname = req.query.lastname;
-	console.log(loggedInTeacher);
 	connection.query(`SELECT class.classname, class.startingyear, COUNT(student.studentID) AS amountStudents FROM class
                     LEFT JOIN student ON class.classname = student.classname
                     INNER JOIN teacher_class ON class.classname = teacher_class.classname
@@ -500,15 +475,12 @@ app.get('/home/allclasses/:classname/:session_id', async (req, res) => {
 app.post('/home/teacherclass', (req, res) => {
 	const session_id = req.body.session_id;
 	let classname = req.body.classname;
-	console.log(classname + 'c');
 
 	if (!session_id || !classname || Object.keys(req.body).length != 2) {
-		console.log(1);
 		checkLogType({ error: `Es wurden nicht session_id und classname mitgegeben!${formatClient(req)}` })
 		res.status(400).json({ error: 'Bitte geben Sie eine session_id und einen Klassennamen mit!' });
 		return;
 	}
-	console.log(2);
 	connection.query(`SELECT * FROM teacher WHERE session_id = "${session_id}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -526,12 +498,10 @@ app.post('/home/teacherclass', (req, res) => {
 					throw err;
 				}
 				if (rows.length <= 0) {
-					console.log(4);
 					checkLogType({ error: `Klasse ${classname} nicht gefunden!${formatClient(req)}` });
 					res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
 					return;
 				} else {
-					console.log(req.body);
 					connection.query(`SELECT * FROM teacher_class WHERE teacherID = "${teacherID}" AND classname = "${classname}"`, (err, rows) => {
 						if (err) {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -543,7 +513,6 @@ app.post('/home/teacherclass', (req, res) => {
 									checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 									throw err;
 								} else {
-									console.log('Klasse zum Lehrer hinzugefügt');
 									checkLogType({ message: `Klasse ${classname} wurde zum Lehrer ${teacherID} hinzugefügt${formatClient(req)}` });
 									res.status(201).json({ message: 'Klasse zum Lehrer hinzugefügt' });
 								}
@@ -627,7 +596,6 @@ app.delete('/home/teacherclass', async (req, res) => {
 				res.status(404).json({ error: 'Klasse oder Lehrer nicht gefunden!' });
 				return;
 			}
-			console.log('Class removed from teacher');
 			checkLogType({ message: `Klasse ${classname} wurde von Lehrer ${teacherID} entfernt${formatClient(req)}` });
 			res.json({ message: `Klasse ${classname} wurde entfernt` });
 		}
@@ -738,7 +706,6 @@ app.put('/home/nickname', async (req, res) => {
 		res.status(400).json({ error: 'Bitte geben Sie eine studentID und einen nickname mit!' });
 		return;
 	}
-	console.log(req.body);
 	connection.query(`SELECT * FROM nickname WHERE studentID = "${studentID}" AND teacherID = "${teacherID}"`, (err, rows) => {
 		if (err) {
 			checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -753,7 +720,6 @@ app.put('/home/nickname', async (req, res) => {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
 				} else {
-					console.log('Nickname added');
 					checkLogType({ message: `Nickname hinzugefügt${formatClient(req)}` });
 					res.json({ message: 'Nickname hinzugefügt' });
 				}
@@ -767,7 +733,6 @@ app.put('/home/nickname', async (req, res) => {
 					checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 					throw err;
 				} else {
-					console.log('Nickname added');
 					checkLogType({ message: `Nickname upgedated${formatClient(req)}` });
 					res.json({ message: 'Nickname upgedated' });
 				}
@@ -846,7 +811,6 @@ app.post('/home/results', (req, res) => {
 								}
 							});
 						}
-						console.log('Results updated');
 						checkLogType({ message: `Resultat aktualisiert${formatClient(req)}` });
 						res.status(200).json({ message: 'Resultat aktualisiert' });
 
@@ -858,7 +822,6 @@ app.post('/home/results', (req, res) => {
 							checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
 							throw err;
 						} else {
-							console.log('Results added');
 							checkLogType({ message: `Resultat hinzugefügt${formatClient(req)}` });
 							res.status(201).json({ message: 'Resultat hinzugefügt' });
 						}
@@ -873,7 +836,6 @@ app.post('/home/results', (req, res) => {
 //listener for the current port
 app.listen(port, () => {
 	checkLogType({ message: `Der Server läuft auf Port: ${port}` });
-	console.log(`Server running on port: ${port}`);
 });
 
 export { formatClient }
