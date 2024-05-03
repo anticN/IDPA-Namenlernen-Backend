@@ -19,7 +19,6 @@ function parser (req, res, connection) {
     let pdffilename = req.file.originalname;
     let pdfpath = `uploads/${pdffilename}`;
         exportImages(pdfpath, 'uploads').then(() => {
-            console.log('Images uploaded')
             dataParser(pdfpath, req,connection,res);
 
         });
@@ -53,7 +52,6 @@ function dataParser(pdfpath, req, connection, res) {
             let startingyear;
             let year = new Date().getFullYear();
             let month = new Date().getMonth();
-            console.log('year:', year, 'month:', month);
             if (month < 7) {
                 startingyear = year - classnumber;
                 classname = classname.replace(/\d+/, startingyear.toString().slice(2));
@@ -61,13 +59,11 @@ function dataParser(pdfpath, req, connection, res) {
                 startingyear = (year - classnumber) + 1;
                 classname = classname.replace(/\d+/, startingyear.toString().slice(2));
             }
-            console.log('startingyear:', startingyear);
     
     
             let students = []
             let lines = data.text.split('\n');
-            let studentlines = lines.slice(9);
-            console.log('studentlines:', studentlines);        
+            let studentlines = lines.slice(9);      
             for (let i = 0; i < studentlines.length; i++) {
                 let student = studentlines[i];
                 let studentname = student.split(' ');
@@ -87,7 +83,6 @@ function dataParser(pdfpath, req, connection, res) {
                 classname: classname,
                 startingyear: startingyear
             }
-            console.log('classobject:', classobject);
             insertImage(students, classobject, connection, res, req);
         });
 }

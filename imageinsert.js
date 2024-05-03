@@ -17,8 +17,6 @@ import { formatClient } from './index.js';
  */
 
 function insertImage(students, classobject, connection, res, req) {
-    console.log('000students:', students);
-    console.log('000classobject:', classobject);
 
     // if classobject.classname is already in the database dont insert it
     // else insert it
@@ -28,7 +26,6 @@ function insertImage(students, classobject, connection, res, req) {
             checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
             throw err;
         }
-        console.log('result:', result);
         
         if (result.length == 0) {
         let sql = `INSERT INTO class (classname, startingyear) VALUES ('${classobject.classname}', '${classobject.startingyear}')`;
@@ -37,7 +34,6 @@ function insertImage(students, classobject, connection, res, req) {
                     checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
                     throw err;
                 }
-                console.log('1 record inserted');
             });
 
             for (let i = 0; i < students.length; i++) {
@@ -52,7 +48,6 @@ function insertImage(students, classobject, connection, res, req) {
                     checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
                     throw err;
                 }
-                console.log('1 record updated');
             });
             for (let i = 0; i < students.length; i++) {
                 imagePathFunction(`uploads/img_p0_${i+2}.png`, students[i], connection, result);  
@@ -89,8 +84,6 @@ function imagePathFunction(imagePath, student, connection, result) {
                         checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
                         throw err;
                     }
-                    console.log('1 record inserted');
-                    console.log('student:', student);
                 });
         
         } else {
@@ -100,8 +93,6 @@ function imagePathFunction(imagePath, student, connection, result) {
                     checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
                     throw err;
                 }
-                console.log('1 record updated');
-                console.log('student:', student);
             });
 
             
