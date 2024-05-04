@@ -11,7 +11,7 @@ import bodyParser from 'body-parser';
 import { parser } from './pdfparser.js';
 import path from 'path';
 import fs from 'fs';
-import https from 'https';
+//import https from 'https';
 import { threadId } from 'worker_threads';
 import { resolve } from 'path';
 import { rejects } from 'assert';
@@ -23,11 +23,6 @@ const port = 3000;
 
 //load the environment variables
 dotenv.config();
-
-const options = {
-	key: fs.readFileSync('./key.pem'),
-	cert: fs.readFileSync('./cert.pem')
-}
 
 
 //create a connection to the MySQL database
@@ -42,7 +37,7 @@ const connection = mysql.createConnection({
 connection.connect()
 
 const corsOptions = {
-	origin: 'http://localhost:5173',
+	origin: 'https://namenlernen-idpa.netlify.app',
 	credentials: true,
 	allowedHeaders: ['Content-type', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Headers', 'Access-Control-Allow-Credentials', 'Authorization']
 
@@ -827,11 +822,8 @@ app.post('/home/results', (req, res) => {
 });
 
 
-const server = https.createServer(options, app);
-
-
 //listener for the current port
-server.listen(port, () => {
+app.listen(port, () => {
 	console.log(`Der Server läuft auf Port: ${port}`);
 	checkLogType({ message: `Der Server läuft auf Port: ${port}` });
 });
