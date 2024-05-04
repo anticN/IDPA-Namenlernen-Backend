@@ -16,12 +16,12 @@ import { formatClient } from './index.js';
  * @throws {Error} - If an error occurs
  */
 
-function insertImage(students, classobject, connection, res, req) {
+async function insertImage(students, classobject, connection, res, req) {
 
     // if classobject.classname is already in the database dont insert it
     // else insert it
     let sql = `SELECT * FROM class WHERE classname = '${classobject.classname}'`;
-    connection.query(sql,(err, result) => {
+    await connection.query(sql,(err, result) => {
         if (err) {
             checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
             throw err;
@@ -70,7 +70,7 @@ function insertImage(students, classobject, connection, res, req) {
  * @throws {Error} - If an error occurs
  */
 
-function imagePathFunction(imagePath, student, connection, result) {
+async function imagePathFunction(imagePath, student, connection, result) {
     fs.readFile(imagePath, (err, data) => {
         if (err) {
             checkLogType({ error: `Ein Fehler ist aufgetreten: ${err}` });
@@ -95,13 +95,7 @@ function imagePathFunction(imagePath, student, connection, result) {
                     throw err;
                 }
             });
-
-            
         }
-        
-        
-        
-    
     });;
 }
 
